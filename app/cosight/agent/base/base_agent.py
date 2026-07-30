@@ -317,6 +317,18 @@ class BaseAgent:
             "http_request": "HTTP请求",
             "api_call": "API调用",
             "webhook": "Webhook",
+
+            # NetHeal-Agent 通信网络运维工具
+            "read_alarm_events": "读取并关联告警",
+            "query_kpi_metrics": "查询网络KPI",
+            "query_network_topology": "查询网络拓扑",
+            "retrieve_fault_knowledge": "检索故障知识",
+            "diagnose_root_cause": "定位故障根因",
+            "generate_repair_plan": "生成修复方案",
+            "generate_config_commands": "生成配置命令",
+            "generate_work_order": "生成运维工单",
+            "verify_recovery": "验证恢复效果",
+            "generate_incident_report": "生成故障闭环报告",
             
             # 计划管理类工具
             "create_plan": "创建计划",
@@ -376,6 +388,26 @@ class BaseAgent:
         
         # 报告生成
         if name in ("create_html_report",):
+            return ["rule_assist", "self_consistency"]
+
+        # NetHeal 取证类工具：来源追溯 + 规则校验
+        if name in (
+            "read_alarm_events",
+            "query_kpi_metrics",
+            "query_network_topology",
+            "retrieve_fault_knowledge",
+        ):
+            return ["source_trace", "rule_assist"]
+
+        # NetHeal 推理、修复与验证：规则辅助 + 自洽/交叉验证
+        if name in (
+            "diagnose_root_cause",
+            "generate_repair_plan",
+            "generate_config_commands",
+            "generate_work_order",
+            "verify_recovery",
+            "generate_incident_report",
+        ):
             return ["rule_assist", "self_consistency"]
         
         # 未在清单中的工具：不返回任何步骤

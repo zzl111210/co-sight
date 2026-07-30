@@ -1,0 +1,37 @@
+{
+  "name": "NetHeal-Agent 5G专网故障闭环",
+  "version": "1.0",
+  "entry": "alarm_agent",
+  "parallel_groups": [
+    ["alarm_agent", "kpi_probe", "topology_agent", "knowledge_probe"]
+  ],
+  "nodes": [
+    {"id": "alarm_agent", "agent": "告警解析智能体", "tool": "read_alarm_events"},
+    {"id": "kpi_probe", "agent": "根因定位智能体", "tool": "query_kpi_metrics"},
+    {"id": "topology_agent", "agent": "拓扑关联智能体", "tool": "query_network_topology"},
+    {"id": "knowledge_probe", "agent": "根因定位智能体", "tool": "retrieve_fault_knowledge"},
+    {"id": "root_cause_agent", "agent": "根因定位智能体", "tool": "diagnose_root_cause"},
+    {"id": "repair_agent", "agent": "修复决策智能体", "tool": "generate_repair_plan"},
+    {"id": "approval_branch", "type": "condition", "expression": "risk_level in ['low'] or simulation_mode == true"},
+    {"id": "auto_repair", "agent": "修复决策智能体", "tool": "generate_config_commands"},
+    {"id": "manual_work_order", "agent": "修复决策智能体", "tool": "generate_work_order"},
+    {"id": "verification_agent", "agent": "验证评估智能体", "tool": "verify_recovery"},
+    {"id": "recovery_branch", "type": "condition", "expression": "verification.passed == true"},
+    {"id": "incident_report", "agent": "验证评估智能体", "tool": "generate_incident_report"}
+  ],
+  "edges": [
+    {"from": "alarm_agent", "to": "root_cause_agent"},
+    {"from": "kpi_probe", "to": "root_cause_agent"},
+    {"from": "topology_agent", "to": "root_cause_agent"},
+    {"from": "knowledge_probe", "to": "root_cause_agent"},
+    {"from": "root_cause_agent", "to": "repair_agent"},
+    {"from": "repair_agent", "to": "approval_branch"},
+    {"from": "approval_branch", "to": "auto_repair", "when": "true"},
+    {"from": "approval_branch", "to": "manual_work_order", "when": "false"},
+    {"from": "auto_repair", "to": "verification_agent"},
+    {"from": "manual_work_order", "to": "verification_agent"},
+    {"from": "verification_agent", "to": "recovery_branch"},
+    {"from": "recovery_branch", "to": "incident_report", "when": "true"},
+    {"from": "recovery_branch", "to": "root_cause_agent", "when": "false", "loop": {"max_retries": 2}}
+  ]
+}

@@ -39,6 +39,8 @@ from app.cosight.tool.deep_search.searchers.tavily_search import TavilySearch
 from app.cosight.tool.audio_toolkit import AudioTool
 from app.cosight.tool.video_analysis_toolkit import VideoTool
 from app.cosight.tool.html_visualization_toolkit import HtmlVisualizationToolkit
+from app.netheal.network_toolkit import NetworkToolkit
+from app.netheal.prompts import build_netheal_actor_guidance
 from config.config import get_tavily_config
 from app.common.logger_util import logger
 
@@ -94,6 +96,7 @@ class TaskActorAgent(BaseAgent):
         code_toolkit = CodeToolkit(sandbox="subprocess")
         tavily_search = TavilySearch()
         html_toolkit = HtmlVisualizationToolkit(workspace_path=work_space_path, tool_llm=tool_llm)
+        network_toolkit = NetworkToolkit(workspace_path=self.work_space_path)
         code_toolkit = CodeToolkit(sandbox="subprocess")
         all_functions = {"mark_step": act_toolkit.mark_step,
                          # "deep_search": deep_search_toolkit.deep_search,
@@ -123,6 +126,16 @@ class TaskActorAgent(BaseAgent):
                              output_filename=output_filename,
                              user_query=self.question
                          ),
+                         "read_alarm_events": network_toolkit.read_alarm_events,
+                         "query_kpi_metrics": network_toolkit.query_kpi_metrics,
+                         "query_network_topology": network_toolkit.query_network_topology,
+                         "retrieve_fault_knowledge": network_toolkit.retrieve_fault_knowledge,
+                         "diagnose_root_cause": network_toolkit.diagnose_root_cause,
+                         "generate_repair_plan": network_toolkit.generate_repair_plan,
+                         "generate_config_commands": network_toolkit.generate_config_commands,
+                         "generate_work_order": network_toolkit.generate_work_order,
+                         "verify_recovery": network_toolkit.verify_recovery,
+                         "generate_incident_report": network_toolkit.generate_incident_report,
                          }
         if functions:
             all_functions.update(functions)
@@ -154,6 +167,7 @@ class TaskActorAgent(BaseAgent):
             task_prompt = actor_execute_task_prompt_zh(question, step_index, self.plan, self.work_space_path)
         else:
             task_prompt = actor_execute_task_prompt(question, step_index, self.plan, self.work_space_path)
+        task_prompt += build_netheal_actor_guidance(question, self.plan.steps[step_index])
 
         self.history.append(
             {"role": "user", "content": task_prompt})

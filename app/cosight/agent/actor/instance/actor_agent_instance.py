@@ -16,6 +16,7 @@
 from app.agent_dispatcher.infrastructure.entity.AgentInstance import AgentInstance
 from app.agent_dispatcher.infrastructure.entity.AgentTemplate import AgentTemplate
 from app.cosight.agent.actor.instance.actor_agent_skill import *
+from app.netheal.skills import netheal_skills
 
 
 def create_actor_instance(agent_instance_name, work_space_path):
@@ -67,7 +68,8 @@ def create_actor_template(template_name, work_space_path):
                    # search_duckgo_skill(),
                    search_wiki_skill(),
                    audio_recognition_skill(),
-                   ask_question_about_video_skill()],
+                   ask_question_about_video_skill(),
+                   *netheal_skills()],
         # , terminate_skill(), browser_use_skill()
         "organizations": [],
         'knowledge': [],

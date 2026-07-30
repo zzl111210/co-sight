@@ -7,6 +7,18 @@
 
 **Co-Sight** 致力于在成本、质量、稳定性与易用性之间取得最佳平衡。它支持低成本大模型生成媲美 Claude模型 的高质量、美观报告，并可灵活部署于私有环境，助力企业与个人快速构建属于自己的类Manus系统。
 
+## 📡 NetHeal-Agent 国赛场景增强
+
+本分支新增 **NetHeal-Agent：面向 5G 校园专网的多智能体故障诊断与自愈系统**。它复用 Co-Sight 的 planner、DAG 并发调度、Actor 工具机制和现有前端，新增 5 类专业智能体角色、10 个通信运维工具、3 个可复现故障场景以及量化评测。
+
+主案例实现：告警输入 → 四路并行取证 → 根因定位 → 风险分级修复 → 工单/仿真命令 → KPI 恢复验证 → Markdown/HTML 闭环报告。
+
+- [技术方案](docs/netheal/technical_solution.md)
+- [演示指南](docs/netheal/demo_guide.md)
+- [评测报告](docs/netheal/evaluation_report.md)
+- [创新总结](docs/netheal/innovation_summary.md)
+- [场景包说明](app/netheal/README.md)
+
 ## 🔍样例展示
 
 | 场景       | 示例链接                                                                          | 效果预览                                            |

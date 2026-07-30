@@ -8,6 +8,17 @@ Since the release of Manus, some closed-source platforms have faced problems suc
 
 **Co-Sight** Committed to striking the best balance between cost, quality, stability and ease of use. It supports low-cost large models to generate high-quality and beautiful reports comparable to Claude models, and can be flexibly deployed in private environments, helping enterprises and individuals quickly build their own Manus-like systems.
 
+## 📡 NetHeal-Agent Competition Scenario
+
+This branch adds **NetHeal-Agent**, a multi-agent diagnosis and self-healing system for a campus 5G private network. It reuses the Co-Sight planner, concurrent DAG scheduler, Actor tools, and existing UI while adding five specialist roles, ten telecom-operations tools, three reproducible fault scenarios, and a synthetic benchmark.
+
+The primary demo covers: alarms → four-way parallel evidence collection → root-cause ranking → risk-graded remediation → work order/dry-run commands → KPI recovery verification → Markdown/HTML closure report.
+
+- [Technical solution (Chinese)](docs/netheal/technical_solution.md)
+- [Demo guide (Chinese)](docs/netheal/demo_guide.md)
+- [Evaluation report (Chinese)](docs/netheal/evaluation_report.md)
+- [Scenario package](app/netheal/README.md)
+
 ## 🔍Sample Demo
 
 | Scene                 | Example links                                                                 | Preview of the effect                           |

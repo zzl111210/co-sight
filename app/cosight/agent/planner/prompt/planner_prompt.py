@@ -351,6 +351,8 @@ Ensure your final answer contains only the content in the following format: {out
 """
     if output_format:
         create_plan_prompt += output_format_prompt
+    from app.netheal.prompts import build_netheal_planning_guidance
+    create_plan_prompt += build_netheal_planning_guidance(question)
     return create_plan_prompt
 
 

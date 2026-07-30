@@ -1,0 +1,34 @@
+{
+  "scenarios": [
+    {
+      "id": "upf-overload",
+      "title": "UPF负载过高导致视频业务高时延",
+      "site_id": "campus-5g",
+      "ground_truth": "UPF_OVERLOAD",
+      "root_resource": "UPF-01",
+      "affected_service": "slice-video",
+      "manual_reference_minutes": 15,
+      "expected": {"latency_ms_max": 30, "packet_loss_pct_max": 0.5}
+    },
+    {
+      "id": "backhaul-link-down",
+      "title": "基站回传链路异常导致小区掉线",
+      "site_id": "campus-5g",
+      "ground_truth": "BACKHAUL_LINK_DOWN",
+      "root_resource": "LINK-03",
+      "affected_service": "gNodeB-03",
+      "manual_reference_minutes": 18,
+      "expected": {"attach_success_pct_min": 95, "availability_pct_min": 99.9}
+    },
+    {
+      "id": "slice-capacity-shortage",
+      "title": "URLLC切片资源不足导致工业业务SLA违约",
+      "site_id": "campus-5g",
+      "ground_truth": "SLICE_CAPACITY_SHORTAGE",
+      "root_resource": "slice-urllc",
+      "affected_service": "industrial-control",
+      "manual_reference_minutes": 12,
+      "expected": {"latency_ms_max": 20, "packet_loss_pct_max": 0.5}
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "site_id": "campus-5g",
+  "name": "5G校园专网",
+  "nodes": [
+    {"id": "gNodeB-01", "type": "gNodeB", "zone": "A", "status": "online"},
+    {"id": "gNodeB-03", "type": "gNodeB", "zone": "C", "status": "online"},
+    {"id": "LINK-01", "type": "backhaul_link", "capacity_mbps": 1000, "backup": "LINK-01-B"},
+    {"id": "LINK-03", "type": "backhaul_link", "capacity_mbps": 1000, "backup": "LINK-03-B"},
+    {"id": "UPF-01", "type": "UPF", "capacity_mbps": 1000, "status": "active"},
+    {"id": "UPF-02", "type": "UPF", "capacity_mbps": 1000, "status": "standby"},
+    {"id": "slice-video", "type": "network_slice", "sla": {"latency_ms": 30, "packet_loss_pct": 0.5}},
+    {"id": "slice-urllc", "type": "network_slice", "sla": {"latency_ms": 20, "packet_loss_pct": 0.5}},
+    {"id": "video-service", "type": "service", "priority": 60},
+    {"id": "industrial-control", "type": "service", "priority": 95}
+  ],
+  "links": [
+    {"source": "gNodeB-01", "target": "LINK-01", "relation": "backhauled_by"},
+    {"source": "gNodeB-03", "target": "LINK-03", "relation": "backhauled_by"},
+    {"source": "LINK-01", "target": "UPF-01", "relation": "forwards_to"},
+    {"source": "LINK-03", "target": "UPF-01", "relation": "forwards_to"},
+    {"source": "UPF-01", "target": "slice-video", "relation": "hosts"},
+    {"source": "UPF-01", "target": "slice-urllc", "relation": "hosts"},
+    {"source": "UPF-02", "target": "slice-video", "relation": "standby_for"},
+    {"source": "UPF-02", "target": "slice-urllc", "relation": "standby_for"},
+    {"source": "slice-video", "target": "video-service", "relation": "serves"},
+    {"source": "slice-urllc", "target": "industrial-control", "relation": "serves"}
+  ]
+}

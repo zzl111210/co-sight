@@ -1,0 +1,100 @@
+{
+  "rules": [
+    {
+      "id": "KB-UPF-001",
+      "root_cause": "UPF_OVERLOAD",
+      "title": "UPF节点过载",
+      "keywords": ["UPF", "CPU", "时延", "丢包", "吞吐量", "video"],
+      "required_alarm_types": ["UPF_CPU_HIGH", "USER_PLANE_LATENCY_HIGH", "PACKET_LOSS_HIGH"],
+      "kpi_conditions": [
+        {"metric": "cpu_usage_pct", "operator": ">", "value": 85},
+        {"metric": "latency_ms", "operator": ">", "value": 30},
+        {"metric": "packet_loss_pct", "operator": ">", "value": 0.5}
+      ],
+      "affected_resource_type": "UPF",
+      "risk_level": "medium",
+      "remediation": [
+        "将视频切片的部分业务流量迁移至备用UPF-02",
+        "临时提高视频业务切片带宽配额",
+        "降低非关键eMBB流量优先级",
+        "观察5分钟KPI并在未恢复时回滚"
+      ],
+      "commands": [
+        "traffic-steering move --slice slice-video --from UPF-01 --to UPF-02 --ratio 40%",
+        "slice-policy update --slice slice-video --bandwidth 700Mbps",
+        "qos-policy update --class non-critical-embb --priority 30"
+      ],
+      "rollback": "traffic-steering rollback --transaction ${transaction_id}"
+    },
+    {
+      "id": "KB-LINK-001",
+      "root_cause": "BACKHAUL_LINK_DOWN",
+      "title": "基站回传链路中断",
+      "keywords": ["gNodeB", "链路", "端口", "小区", "接入失败", "backhaul"],
+      "required_alarm_types": ["CELL_UNAVAILABLE", "INTERFACE_DOWN", "ATTACH_SUCCESS_LOW"],
+      "kpi_conditions": [
+        {"metric": "attach_success_pct", "operator": "<", "value": 95},
+        {"metric": "availability_pct", "operator": "<", "value": 99.9}
+      ],
+      "affected_resource_type": "backhaul_link",
+      "risk_level": "medium",
+      "remediation": [
+        "切换到备用回传链路",
+        "临时将用户重定向到邻区",
+        "生成光模块与端口现场检查工单"
+      ],
+      "commands": [
+        "transport failover --link LINK-03 --backup LINK-03-B",
+        "ran neighbor-redirect --cell gNodeB-03 --target gNodeB-01"
+      ],
+      "rollback": "transport failback --link LINK-03"
+    },
+    {
+      "id": "KB-SLICE-001",
+      "root_cause": "SLICE_CAPACITY_SHORTAGE",
+      "title": "URLLC切片资源不足",
+      "keywords": ["URLLC", "切片", "带宽", "资源", "时延", "丢包"],
+      "required_alarm_types": ["SLICE_PACKET_LOSS_HIGH", "SLICE_LATENCY_HIGH", "SLICE_BANDWIDTH_SATURATION"],
+      "kpi_conditions": [
+        {"metric": "bandwidth_utilization_pct", "operator": ">", "value": 90},
+        {"metric": "latency_ms", "operator": ">", "value": 20},
+        {"metric": "packet_loss_pct", "operator": ">", "value": 0.5}
+      ],
+      "affected_resource_type": "network_slice",
+      "risk_level": "medium",
+      "remediation": [
+        "临时增加URLLC切片带宽",
+        "降低eMBB非关键流量优先级",
+        "重新计算切片资源分配比例"
+      ],
+      "commands": [
+        "slice-policy update --slice slice-urllc --bandwidth 300Mbps",
+        "qos-policy update --class non-critical-embb --priority 20"
+      ],
+      "rollback": "slice-policy rollback --slice slice-urllc --version previous"
+    }
+  ],
+  "historical_cases": [
+    {
+      "id": "CASE-2026-017",
+      "summary": "大型活动期间视频切片突发流量导致UPF-01 CPU达到93%",
+      "root_cause": "UPF_OVERLOAD",
+      "resolution": "迁移40%流量至UPF-02并扩容视频切片",
+      "recovery_minutes": 5
+    },
+    {
+      "id": "CASE-2026-009",
+      "summary": "施工造成gNodeB-03回传光纤中断",
+      "root_cause": "BACKHAUL_LINK_DOWN",
+      "resolution": "切换备用链路并更换光模块",
+      "recovery_minutes": 8
+    },
+    {
+      "id": "CASE-2026-021",
+      "summary": "工业实训课并发终端增加导致URLLC切片资源不足",
+      "root_cause": "SLICE_CAPACITY_SHORTAGE",
+      "resolution": "动态调整URLLC与eMBB切片配额",
+      "recovery_minutes": 4
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+event_id,timestamp,site_id,scenario_id,severity,source,resource_id,alarm_type,metric,value,threshold,description,correlation_group
+A001,2026-07-30T10:00:00+08:00,campus-5g,upf-overload,critical,5GC,UPF-01,UPF_CPU_HIGH,cpu_usage_pct,94,85,UPF CPU utilization exceeded the critical threshold,CG-UPF-01
+A002,2026-07-30T10:00:03+08:00,campus-5g,upf-overload,major,5GC,UPF-01,USER_PLANE_LATENCY_HIGH,latency_ms,85,30,User-plane forwarding latency increased,CG-UPF-01
+A003,2026-07-30T10:00:05+08:00,campus-5g,upf-overload,major,NMS,slice-video,PACKET_LOSS_HIGH,packet_loss_pct,3.5,0.5,Video slice packet loss exceeded SLA,CG-UPF-01
+A004,2026-07-30T10:00:08+08:00,campus-5g,upf-overload,warning,5GC,UPF-01,THROUGHPUT_SATURATION,throughput_mbps,930,850,UPF throughput approached capacity,CG-UPF-01
+A005,2026-07-30T10:00:12+08:00,campus-5g,upf-overload,warning,OSS,video-service,USER_COMPLAINT,count,18,5,Users reported video stalling,CG-UPF-01
+A006,2026-07-30T10:00:14+08:00,campus-5g,upf-overload,major,NMS,slice-video,PACKET_LOSS_HIGH,packet_loss_pct,3.4,0.5,Repeated packet-loss alarm,CG-UPF-01
+B001,2026-07-30T11:00:00+08:00,campus-5g,backhaul-link-down,critical,RAN,gNodeB-03,CELL_UNAVAILABLE,availability_pct,0,99.9,gNodeB-03 cell became unavailable,CG-LINK-03
+B002,2026-07-30T11:00:02+08:00,campus-5g,backhaul-link-down,critical,Transport,LINK-03,INTERFACE_DOWN,link_state,0,1,Backhaul port changed to down,CG-LINK-03
+B003,2026-07-30T11:00:07+08:00,campus-5g,backhaul-link-down,major,RAN,gNodeB-03,ATTACH_SUCCESS_LOW,attach_success_pct,42,95,Terminal attach success rate dropped,CG-LINK-03
+B004,2026-07-30T11:00:10+08:00,campus-5g,backhaul-link-down,warning,OSS,campus-zone-c,USER_COMPLAINT,count,31,5,Users in zone C could not access the network,CG-LINK-03
+C001,2026-07-30T12:00:00+08:00,campus-5g,slice-capacity-shortage,major,NSSMF,slice-urllc,SLICE_PACKET_LOSS_HIGH,packet_loss_pct,1.8,0.5,URLLC slice packet loss exceeded SLA,CG-SLICE-URLLC
+C002,2026-07-30T12:00:04+08:00,campus-5g,slice-capacity-shortage,major,NSSMF,slice-urllc,SLICE_LATENCY_HIGH,latency_ms,32,20,Industrial-control latency exceeded SLA,CG-SLICE-URLLC
+C003,2026-07-30T12:00:08+08:00,campus-5g,slice-capacity-shortage,warning,NSSMF,slice-urllc,SLICE_BANDWIDTH_SATURATION,bandwidth_utilization_pct,97,90,URLLC bandwidth remained saturated,CG-SLICE-URLLC
+C004,2026-07-30T12:00:12+08:00,campus-5g,slice-capacity-shortage,warning,OSS,industrial-control,SLA_VIOLATION,count,12,1,Industrial-control SLA violations accumulated,CG-SLICE-URLLC
