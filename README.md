@@ -18,10 +18,12 @@ The operations layer adds an incident state machine, SQLite WAL persistence, rol
 
 After starting Co-Sight, open `http://localhost:7788/cosight/netheal.html` for the NetHeal cockpit or use the original `http://localhost:7788/cosight/` page to inspect the live Planner/DAG/tool trace.
 
+- [Developer/Codex handoff guide (Chinese)](docs/netheal/CODEX_HANDOFF.md)
 - [Technical solution (Chinese)](docs/netheal/technical_solution.md)
 - [Production-style architecture (Chinese)](docs/netheal/production_architecture.md)
 - [Demo guide (Chinese)](docs/netheal/demo_guide.md)
 - [Evaluation report (Chinese)](docs/netheal/evaluation_report.md)
+- [Executable acceptance cases (Chinese)](docs/netheal/test_cases.md)
 - [Scenario package](app/netheal/README.md)
 
 ## 🔍Sample Demo

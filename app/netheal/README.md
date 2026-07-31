@@ -1,5 +1,7 @@
 # NetHeal-Agent 场景包
 
+> 继续开发前请先阅读 [`docs/netheal/CODEX_HANDOFF.md`](../../docs/netheal/CODEX_HANDOFF.md)，其中包含架构边界、代码地图、测试基线、扩展步骤和已知限制。
+
 NetHeal-Agent 是在 Co-Sight 通用框架之上的 5G 校园专网智能运维场景增强，不复制或替换原有 planner、DAG 调度器与前端。
 
 ## 主案例
