@@ -134,11 +134,16 @@ Co-Sight 实际计划使用 8 个步骤：
 app/netheal/
 ├── data/                 # 告警、KPI、拓扑、知识库和场景真值
 ├── workflows/            # 含并发、条件和回溯的 DAG 定义
+├── diagnosis_engine.py   # 可解释的多源证据加权融合
+├── domain.py             # 智能事件状态机与角色权限
+├── store.py              # SQLite 事件、时间线和审计持久化
+├── service.py            # 诊断、审批、执行、验证应用服务
 ├── network_toolkit.py    # 10 个通信运维工具
 ├── skills.py             # Co-Sight SkillFunction 声明
 ├── prompts.py            # 场景识别、规划和 Actor 约束
 ├── scenario_runner.py    # 不依赖大模型的一键闭环演示
-└── evaluation.py         # 可复现基线评测
+├── evaluation.py         # 三场景功能基线评测
+└── robustness_evaluation.py # 360 样本鲁棒性评测
 ```
 
 ## 10. 当前边界与后续工作
@@ -147,3 +152,8 @@ app/netheal/
 - 本地确定性工具链已验证；完整 Co-Sight LLM 前端演示还需要配置 `.env` 模型接口。
 - 赛题写明需使用 Co-Sight 2.0 及以上，但当前仓库 `setup.py` 标注为 1.0，官方公开仓库目前仅能检索到 `v0.0.1` 标签。参赛前必须向主办方确认“2.0”的具体判定口径，或取得指定版本代码。
 - 后续应扩充带噪声、多根因、缺失 KPI 和修复失败样本，并在同一冻结测试集上复测。
+
+> 当前增强版已完成专业运维驾驶舱、REST API、RBAC 演示、SQLite 状态持久化、审计和 360 样本告警噪声/证据缺失评测。比赛身份头不替代生产 OIDC/JWT；自动执行严格限制在 `dry_run` 仿真模式。后续验证重点转为多根因并发、未知故障、修复失败和真实脱敏数据盲测。
+
+更完整的部署边界、安全护栏和生产替换清单见
+[可运营架构说明](production_architecture.md)。

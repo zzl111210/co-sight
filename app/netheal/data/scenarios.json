@@ -2,7 +2,9 @@
   "scenarios": [
     {
       "id": "upf-overload",
+      "test_case_id": "TC-01",
       "title": "UPF负载过高导致视频业务高时延",
+      "description": "验证告警压缩、UPF根因定位、流量迁移及KPI恢复闭环",
       "site_id": "campus-5g",
       "ground_truth": "UPF_OVERLOAD",
       "root_resource": "UPF-01",
@@ -12,7 +14,9 @@
     },
     {
       "id": "backhaul-link-down",
+      "test_case_id": "TC-02",
       "title": "基站回传链路异常导致小区掉线",
+      "description": "验证拓扑传播分析、回传链路定位、备用链路切换及接入恢复",
       "site_id": "campus-5g",
       "ground_truth": "BACKHAUL_LINK_DOWN",
       "root_resource": "LINK-03",
@@ -22,7 +26,9 @@
     },
     {
       "id": "slice-capacity-shortage",
+      "test_case_id": "TC-03",
       "title": "URLLC切片资源不足导致工业业务SLA违约",
+      "description": "验证切片容量诊断、动态资源调优及工业业务SLA恢复",
       "site_id": "campus-5g",
       "ground_truth": "SLICE_CAPACITY_SHORTAGE",
       "root_resource": "slice-urllc",

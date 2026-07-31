@@ -15,6 +15,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Iterable
 
+from app.netheal.diagnosis_engine import EvidenceFusionEngine
+
 
 class NetworkToolkit:
     """Read evidence, diagnose faults, plan remediation, and verify recovery."""
@@ -231,49 +233,11 @@ class NetworkToolkit:
             and row["phase"] == "incident"
         ]
         knowledge = self._read_json("knowledge_base.json")
-        alarm_types = {row["alarm_type"] for row in alarms}
-        candidates: list[dict[str, Any]] = []
-        for rule in knowledge["rules"]:
-            matched_alarm_types = [
-                alarm_type
-                for alarm_type in rule["required_alarm_types"]
-                if alarm_type in alarm_types
-            ]
-            matched_kpis = []
-            for condition in rule["kpi_conditions"]:
-                matches = [
-                    row
-                    for row in kpis
-                    if row["metric"] == condition["metric"]
-                    and self._condition_matches(
-                        self._number(row["value"]),
-                        condition["operator"],
-                        self._number(condition["value"]),
-                    )
-                ]
-                if matches:
-                    matched_kpis.append(
-                        {
-                            "condition": condition,
-                            "evidence": matches,
-                        }
-                    )
-            evidence_total = len(rule["required_alarm_types"]) + len(rule["kpi_conditions"])
-            evidence_matched = len(matched_alarm_types) + len(matched_kpis)
-            score = round(evidence_matched / evidence_total, 4) if evidence_total else 0.0
-            root_resource = self._infer_root_resource(rule, alarms)
-            candidates.append(
-                {
-                    "root_cause": rule["root_cause"],
-                    "title": rule["title"],
-                    "root_resource": root_resource,
-                    "confidence": score,
-                    "matched_alarm_types": matched_alarm_types,
-                    "matched_kpis": matched_kpis,
-                    "rule_id": rule["id"],
-                }
-            )
-        candidates.sort(key=lambda item: item["confidence"], reverse=True)
+        candidates = EvidenceFusionEngine().rank(
+            alarms,
+            kpis,
+            knowledge["rules"],
+        )
         top = candidates[0] if candidates else None
         evidence_ids = [
             row["event_id"]

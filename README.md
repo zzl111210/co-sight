@@ -10,11 +10,16 @@ Since the release of Manus, some closed-source platforms have faced problems suc
 
 ## 📡 NetHeal-Agent Competition Scenario
 
-This branch adds **NetHeal-Agent**, a multi-agent diagnosis and self-healing system for a campus 5G private network. It reuses the Co-Sight planner, concurrent DAG scheduler, Actor tools, and existing UI while adding five specialist roles, ten telecom-operations tools, three reproducible fault scenarios, and a synthetic benchmark.
+This branch adds **NetHeal-Agent**, a multi-agent diagnosis and self-healing system for a campus 5G private network. It reuses the Co-Sight planner, concurrent DAG scheduler and Actor tools while adding five specialist roles, ten telecom-operations tools, three reproducible fault scenarios, a durable incident control plane, and a professional operations cockpit.
 
 The primary demo covers: alarms → four-way parallel evidence collection → root-cause ranking → risk-graded remediation → work order/dry-run commands → KPI recovery verification → Markdown/HTML closure report.
 
+The operations layer adds an incident state machine, SQLite WAL persistence, role-based diagnosis/approval/execution, immutable lifecycle events, audit records, topology impact highlighting, KPI before/after views, and low-confidence human-review routing.
+
+After starting Co-Sight, open `http://localhost:7788/cosight/netheal.html` for the NetHeal cockpit or use the original `http://localhost:7788/cosight/` page to inspect the live Planner/DAG/tool trace.
+
 - [Technical solution (Chinese)](docs/netheal/technical_solution.md)
+- [Production-style architecture (Chinese)](docs/netheal/production_architecture.md)
 - [Demo guide (Chinese)](docs/netheal/demo_guide.md)
 - [Evaluation report (Chinese)](docs/netheal/evaluation_report.md)
 - [Scenario package](app/netheal/README.md)

@@ -53,6 +53,46 @@ body {
     z-index: 2001;
 }
 
+.netheal-entry {
+    position: absolute;
+    top: 50%;
+    left: 20px;
+    display: inline-flex;
+    height: 42px;
+    align-items: center;
+    gap: 9px;
+    padding: 0 16px;
+    border: 1px solid rgba(18, 177, 207, 0.24);
+    border-radius: 10px;
+    color: #125d6d;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    background: linear-gradient(135deg, rgba(41, 216, 255, 0.11), rgba(73, 99, 190, 0.08));
+    box-shadow: 0 5px 18px rgba(18, 113, 138, 0.12);
+    transform: translateY(-50%);
+    transition: all 0.2s ease;
+}
+
+.netheal-entry i {
+    color: #0c9db9;
+    font-size: 15px;
+}
+
+.netheal-entry:hover {
+    border-color: rgba(18, 177, 207, 0.48);
+    color: #063d49;
+    background: linear-gradient(135deg, rgba(41, 216, 255, 0.2), rgba(73, 99, 190, 0.13));
+    box-shadow: 0 7px 23px rgba(18, 113, 138, 0.2);
+    transform: translateY(-52%);
+}
+
+@media (max-width: 900px) {
+    .netheal-entry span {
+        display: none;
+    }
+}
+
 .btn-replay-history {
     position: absolute;
     right: 20px;

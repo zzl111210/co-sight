@@ -31,6 +31,7 @@ NetHeal-Agent 是在 Co-Sight 通用框架之上的 5G 校园专网智能运维�
 ```powershell
 python -m app.netheal.scenario_runner --scenario upf-overload --workspace .\work_space
 python -m app.netheal.evaluation --workspace .\work_space
+python -m app.netheal.robustness_evaluation
 python -m unittest discover -s tests -v
 ```
 
@@ -49,3 +50,9 @@ python cosight_server/deep_research/main.py
 > 请诊断 campus-5g 当前视频业务时延升高问题，定位根因，生成修复方案并验证恢复效果。
 
 NetHeal 场景提示会要求 planner 创建 4 路并行取证的 8 步 DAG，Actor 随后调用上述专用工具完成闭环。
+
+专业运维驾驶舱：
+
+`http://localhost:7788/cosight/netheal.html`
+
+驾驶舱通过 `/api/netheal/v1` 管理事件状态、审批、仿真执行、恢复验证和审计；运行时状态保存在 git 忽略的 `work_space/netheal/netheal.db`。

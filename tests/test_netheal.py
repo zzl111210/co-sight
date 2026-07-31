@@ -42,6 +42,10 @@ class NetworkToolkitTests(unittest.TestCase):
                     diagnosis["primary_diagnosis"]["root_cause"],
                     scenario["ground_truth"],
                 )
+                self.assertEqual(
+                    diagnosis["primary_diagnosis"]["root_resource"],
+                    scenario["root_resource"],
+                )
                 self.assertTrue(verification["passed"])
 
     def test_report_and_work_order_are_written(self) -> None:

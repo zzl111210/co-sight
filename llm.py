@@ -35,6 +35,15 @@ else:
     logger.info("Langfuse tracing disabled")
 
 
+def safe_model_config(model_config: dict) -> dict:
+    """Return a log-safe copy without exposing API credentials."""
+    safe_config = dict(model_config)
+    api_key = safe_config.get("api_key")
+    if api_key:
+        safe_config["api_key"] = f"{api_key[:4]}****{api_key[-4:]}"
+    return safe_config
+
+
 def set_model(model_config: dict[str, Optional[str | int | float]]):
     # 从环境变量读取超时配置（秒），默认180秒（3分钟）
     timeout_seconds = float(os.environ.get("LLM_TIMEOUT", "180"))
@@ -42,7 +51,7 @@ def set_model(model_config: dict[str, Optional[str | int | float]]):
     http_client_kwargs = {
         "headers": {
             'Content-Type': 'application/json',
-            'Authorization': model_config['api_key']
+            'Authorization': f"Bearer {model_config['api_key']}"
         },
         "verify": False,
         "trust_env": False,
@@ -81,21 +90,21 @@ def set_model(model_config: dict[str, Optional[str | int | float]]):
 
 
 plan_model_config = get_plan_model_config()
-logger.info(f"plan_model_config:{plan_model_config}\n")
+logger.info(f"plan_model_config:{safe_model_config(plan_model_config)}\n")
 llm_for_plan = set_model(plan_model_config)
 
 act_model_config = get_act_model_config()
-logger.info(f"act_model_config:{act_model_config}\n")
+logger.info(f"act_model_config:{safe_model_config(act_model_config)}\n")
 llm_for_act = set_model(act_model_config)
 
 tool_model_config = get_tool_model_config()
-logger.info(f"tool_model_config:{tool_model_config}\n")
+logger.info(f"tool_model_config:{safe_model_config(tool_model_config)}\n")
 llm_for_tool = set_model(tool_model_config)
 
 vision_model_config = get_vision_model_config()
-logger.info(f"vision_model_config:{vision_model_config}\n")
+logger.info(f"vision_model_config:{safe_model_config(vision_model_config)}\n")
 llm_for_vision = set_model(vision_model_config)
 
 credibility_model_config = get_credibility_model_config()
-logger.info(f"credibility_model_config:{credibility_model_config}\n")
+logger.info(f"credibility_model_config:{safe_model_config(credibility_model_config)}\n")
 llm_for_credibility = set_model(credibility_model_config)

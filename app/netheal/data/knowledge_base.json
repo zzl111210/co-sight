@@ -5,6 +5,7 @@
       "root_cause": "UPF_OVERLOAD",
       "title": "UPF节点过载",
       "keywords": ["UPF", "CPU", "时延", "丢包", "吞吐量", "video"],
+      "root_alarm_type": "UPF_CPU_HIGH",
       "required_alarm_types": ["UPF_CPU_HIGH", "USER_PLANE_LATENCY_HIGH", "PACKET_LOSS_HIGH"],
       "kpi_conditions": [
         {"metric": "cpu_usage_pct", "operator": ">", "value": 85},
@@ -31,6 +32,7 @@
       "root_cause": "BACKHAUL_LINK_DOWN",
       "title": "基站回传链路中断",
       "keywords": ["gNodeB", "链路", "端口", "小区", "接入失败", "backhaul"],
+      "root_alarm_type": "INTERFACE_DOWN",
       "required_alarm_types": ["CELL_UNAVAILABLE", "INTERFACE_DOWN", "ATTACH_SUCCESS_LOW"],
       "kpi_conditions": [
         {"metric": "attach_success_pct", "operator": "<", "value": 95},
@@ -54,6 +56,7 @@
       "root_cause": "SLICE_CAPACITY_SHORTAGE",
       "title": "URLLC切片资源不足",
       "keywords": ["URLLC", "切片", "带宽", "资源", "时延", "丢包"],
+      "root_alarm_type": "SLICE_BANDWIDTH_SATURATION",
       "required_alarm_types": ["SLICE_PACKET_LOSS_HIGH", "SLICE_LATENCY_HIGH", "SLICE_BANDWIDTH_SATURATION"],
       "kpi_conditions": [
         {"metric": "bandwidth_utilization_pct", "operator": ">", "value": 90},

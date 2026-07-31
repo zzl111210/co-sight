@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#06111f">
+  <title>NetHeal Agent · 5G 专网智能运维中心</title>
+  <link rel="icon" href="./favicon.ico">
+  <link rel="stylesheet" href="./libs/fontawesome-6.7.2/css/all.min.css">
+  <link rel="stylesheet" href="./styles/netheal.css">
+</head>
+<body>
+  <div class="ambient-grid" aria-hidden="true"></div>
+  <header class="topbar">
+    <a class="brand" href="./netheal.html" aria-label="NetHeal 首页">
+      <span class="brand-mark"><i class="fa-solid fa-wave-square"></i></span>
+      <span>
+        <strong>NETHEAL <em>AGENT</em></strong>
+        <small>5G PRIVATE NETWORK AIOPS</small>
+      </span>
+    </a>
+    <div class="site-identity">
+      <span class="eyebrow">当前站点</span>
+      <strong><i class="fa-solid fa-location-dot"></i> CAMPUS-5G / 校园专网</strong>
+    </div>
+    <div class="top-actions">
+      <div class="live-state"><span class="pulse"></span><span>系统在线</span></div>
+      <span class="clock" id="system-clock">--:--:--</span>
+      <label class="role-control" title="演示基于角色的操作权限">
+        <i class="fa-solid fa-user-shield"></i>
+        <select id="role-selector" aria-label="当前操作角色">
+          <option value="viewer">观察员</option>
+          <option value="operator">运维工程师</option>
+          <option value="approver" selected>变更审批人</option>
+          <option value="admin">系统管理员</option>
+        </select>
+      </label>
+      <a class="ghost-button" href="./" title="返回 Co-Sight 通用工作台">
+        <i class="fa-solid fa-diagram-project"></i><span>Co-Sight 工作台</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="dashboard-shell">
+    <section class="hero-row">
+      <div>
+        <p class="eyebrow">AI-DRIVEN CLOSED-LOOP OPERATIONS</p>
+        <h1>5G 专网智能运维中心</h1>
+        <p class="hero-copy">告警压缩、拓扑关联、根因诊断、审批执行与恢复验证，一套证据链完成故障闭环。</p>
+      </div>
+      <div class="hero-actions">
+        <label class="scenario-control" title="选择一个可重复执行的系统验收用例">
+          <i class="fa-solid fa-flask-vial"></i>
+          <select id="scenario-selector" aria-label="测试用例">
+            <option value="upf-overload">TC-01 · UPF过载</option>
+            <option value="backhaul-link-down">TC-02 · 回传链路中断</option>
+            <option value="slice-capacity-shortage">TC-03 · URLLC切片不足</option>
+          </select>
+        </label>
+        <button class="secondary-button" id="reset-demo">
+          <i class="fa-solid fa-rotate-left"></i> 重置演示
+        </button>
+        <button class="primary-button" id="run-demo">
+          <i class="fa-solid fa-play"></i> 运行闭环测试
+        </button>
+      </div>
+    </section>
+
+    <section class="metric-grid" aria-label="网络运行指标">
+      <article class="metric-card health-card">
+        <div class="metric-heading"><span>网络健康度</span><i class="fa-solid fa-heart-pulse"></i></div>
+        <div class="metric-value"><strong id="metric-health">--</strong><small>/ 100</small></div>
+        <div class="health-track"><span id="health-progress"></span></div>
+        <p id="health-caption">正在同步网络状态</p>
+      </article>
+      <article class="metric-card">
+        <div class="metric-heading"><span>活动事件</span><i class="fa-solid fa-triangle-exclamation amber"></i></div>
+        <div class="metric-value"><strong id="metric-active">--</strong><small>起</small></div>
+        <p><span id="metric-critical">--</span> 起高优先级待处理</p>
+      </article>
+      <article class="metric-card">
+        <div class="metric-heading"><span>AI 根因置信度</span><i class="fa-solid fa-brain cyan"></i></div>
+        <div class="metric-value"><strong id="metric-confidence">--</strong><small>%</small></div>
+        <p>多源证据融合诊断</p>
+      </article>
+      <article class="metric-card">
+        <div class="metric-heading"><span>告警压缩率</span><i class="fa-solid fa-filter-circle-dollar violet"></i></div>
+        <div class="metric-value"><strong id="metric-compression">--</strong><small>%</small></div>
+        <p>关联派生告警合并</p>
+      </article>
+      <article class="metric-card">
+        <div class="metric-heading"><span>闭环成功率</span><i class="fa-solid fa-circle-check green"></i></div>
+        <div class="metric-value"><strong id="metric-closure">--</strong><small>%</small></div>
+        <p>诊断—验证完整闭环</p>
+      </article>
+    </section>
+
+    <section class="dashboard-grid">
+      <article class="panel incidents-panel">
+        <div class="panel-header">
+          <div>
+            <span class="eyebrow">INCIDENT QUEUE</span>
+            <h2>智能事件中心</h2>
+          </div>
+          <span class="count-badge" id="incident-count">0</span>
+        </div>
+        <div class="filter-row">
+          <button class="filter-chip active" data-filter="all">全部</button>
+          <button class="filter-chip" data-filter="active">处理中</button>
+          <button class="filter-chip" data-filter="closed">已闭环</button>
+        </div>
+        <div class="incident-list" id="incident-list">
+          <div class="skeleton-list" aria-label="加载中">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel topology-panel">
+        <div class="panel-header">
+          <div>
+            <span class="eyebrow">LIVE DEPENDENCY MAP</span>
+            <h2>网络拓扑与影响路径</h2>
+          </div>
+          <div class="legend">
+            <span><i class="legend-dot healthy"></i>正常</span>
+            <span><i class="legend-dot affected"></i>受影响</span>
+            <span><i class="legend-dot root-cause"></i>疑似根因</span>
+          </div>
+        </div>
+        <div class="topology-canvas" id="topology-canvas">
+          <svg id="topology-svg" role="img" aria-label="5G 校园专网拓扑图"></svg>
+          <div class="topology-empty" id="topology-empty">
+            <i class="fa-solid fa-network-wired"></i><span>正在载入拓扑</span>
+          </div>
+        </div>
+        <div class="topology-footer">
+          <span><i class="fa-solid fa-tower-cell"></i> 接入网</span>
+          <span><i class="fa-solid fa-route"></i> 承载网</span>
+          <span><i class="fa-solid fa-server"></i> 核心网</span>
+          <span><i class="fa-solid fa-layer-group"></i> 网络切片</span>
+        </div>
+      </article>
+
+      <article class="panel detail-panel">
+        <div class="panel-header">
+          <div>
+            <span class="eyebrow">INCIDENT INTELLIGENCE</span>
+            <h2>事件研判</h2>
+          </div>
+          <span class="status-pill muted" id="detail-status">未选择</span>
+        </div>
+        <div class="incident-hero" id="incident-hero">
+          <div class="empty-state">
+            <i class="fa-solid fa-radar"></i>
+            <p>从左侧选择事件，查看完整诊断证据链。</p>
+          </div>
+        </div>
+        <div class="detail-content hidden" id="detail-content">
+          <div class="detail-meta">
+            <span id="detail-id">--</span>
+            <span id="detail-site">--</span>
+            <span id="detail-time">--</span>
+          </div>
+          <h3 id="detail-title">--</h3>
+          <p class="detail-summary" id="detail-summary">--</p>
+          <div class="diagnosis-box">
+            <div class="diagnosis-heading">
+              <span><i class="fa-solid fa-crosshairs"></i> AI 根因定位</span>
+              <strong id="detail-confidence">--%</strong>
+            </div>
+            <h4 id="detail-root-cause">等待诊断</h4>
+            <p id="detail-impact">尚无影响面分析。</p>
+          </div>
+          <div class="section-title"><span>多源证据</span><small id="evidence-count">0 项</small></div>
+          <div class="evidence-grid" id="evidence-grid"></div>
+          <div class="section-title"><span>建议处置</span><small>风险分级执行</small></div>
+          <ol class="repair-list" id="repair-list"></ol>
+          <div class="section-title"><span>事件生命周期</span><small>全链路可追溯</small></div>
+          <div class="incident-timeline" id="incident-timeline"></div>
+          <div class="action-bar">
+            <button class="workflow-button" id="action-diagnose"><i class="fa-solid fa-stethoscope"></i> 启动诊断</button>
+            <button class="workflow-button" id="action-approve"><i class="fa-solid fa-user-check"></i> 审批方案</button>
+            <button class="workflow-button danger" id="action-execute"><i class="fa-solid fa-terminal"></i> 模拟执行</button>
+            <button class="workflow-button success" id="action-verify"><i class="fa-solid fa-shield-check"></i> 恢复验证</button>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel workflow-panel">
+        <div class="panel-header">
+          <div>
+            <span class="eyebrow">MULTI-AGENT ORCHESTRATION</span>
+            <h2>多智能体协同链路</h2>
+          </div>
+          <span class="engine-badge"><span></span> Co-Sight DAG Engine</span>
+        </div>
+        <div class="workflow-rail" id="workflow-rail"></div>
+        <div class="workflow-note">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>每一步均保存输入、工具调用、输出和操作者，支持失败回溯与全链路审计。</span>
+        </div>
+      </article>
+
+      <article class="panel kpi-panel">
+        <div class="panel-header">
+          <div>
+            <span class="eyebrow">BEFORE / AFTER COMPARISON</span>
+            <h2>KPI 恢复评估</h2>
+          </div>
+          <span class="validation-badge" id="validation-badge"><i class="fa-solid fa-minus"></i> 等待验证</span>
+        </div>
+        <div class="kpi-comparison" id="kpi-comparison">
+          <div class="empty-state compact">
+            <i class="fa-solid fa-chart-line"></i>
+            <p>执行修复并验证后展示前后指标对比。</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel audit-panel">
+        <div class="panel-header">
+          <div>
+            <span class="eyebrow">AUDIT & GOVERNANCE</span>
+            <h2>操作审计</h2>
+          </div>
+          <button class="icon-button" id="refresh-audit" title="刷新审计日志"><i class="fa-solid fa-arrows-rotate"></i></button>
+        </div>
+        <div class="audit-list" id="audit-list">
+          <div class="empty-state compact"><i class="fa-solid fa-clock-rotate-left"></i><p>暂无操作记录</p></div>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
+  <div class="operation-overlay hidden" id="operation-overlay" role="status" aria-live="polite">
+    <div class="operation-card">
+      <span class="operation-spinner"></span>
+      <h3 id="operation-title">智能体正在协同分析</h3>
+      <p id="operation-message">正在聚合告警、KPI、拓扑和知识库证据……</p>
+      <div class="operation-progress"><span></span></div>
+    </div>
+  </div>
+
+  <script src="./libs/d3.v7.min.js"></script>
+  <script src="./js/netheal.js"></script>
+</body>
+</html>
