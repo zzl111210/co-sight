@@ -1,17 +1,21 @@
 # NetHeal-Agent 开发交接与 Codex 快速接手指南
 
+> **2026-08-03 更新：** `dev1` 的高级诊断、异步任务、洞察 API、TC-06、前端体验、鉴权和部署能力已在独立集成分支完成安全迁移。请先阅读 [DEV1_MIGRATION.md](./DEV1_MIGRATION.md)，其中的新基线和接口清单优先于本文后续内容。
+
 > 文档目的：让下一位开发者或 Codex 在不重新摸索整个 Co-Sight 仓库的情况下，快速理解“我们改了什么、为什么这样设计、怎么运行、在哪里继续改、哪些边界不能破坏”。
 
 ## 1. 当前交接快照
 
-- 交接日期：2026-07-31
-- 开发分支：`dev`
+- 交接日期：2026-08-03
+- 目标开发分支：`dev`
+- 当前集成分支：`integration/netheal-dev1-port`
 - GitHub：`https://github.com/zzl111210/co-sight/tree/dev`
 - 基础场景提交：`6b0e9ac feat: add NetHeal 5G fault self-healing scenario`
 - 系统增强提交：`5e8ea45 feat: productionize NetHeal operations cockpit`
+- dev1 迁移最新提交：`4211dd4 feat(netheal): add secure settings and deployment kit`
 - `main` 保持在初始提交 `dc00dae`，没有被本项目修改。
-- 自动测试基线：12 项通过。
-- 可执行性验收基线：TC-01～TC-05，5/5 通过。
+- 自动测试基线：23 项通过。
+- 可执行性验收基线：TC-01、TC-02、TC-03、TC-06 业务闭环与 TC-04、TC-05 安全检查，6/6 通过。
 - 所有网络变更命令均为仿真输出，`dry_run=true`，不会连接或修改真实网元。
 
 本次工作的核心不是重写 Co-Sight，而是在通用框架上增加一个边界清晰、可运行、可解释、可量化的通信网络智能运维场景包：

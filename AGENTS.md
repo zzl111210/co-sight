@@ -33,12 +33,13 @@ powershell -ExecutionPolicy Bypass -File .\scripts\run_netheal_acceptance.ps1
 git diff --check
 ```
 
-Expected baseline at this handoff: 12 automated tests pass and NetHeal acceptance reports 5/5 cases passed.
+Expected baseline at this handoff: 23 automated tests pass and NetHeal acceptance reports 6/6 cases passed. For the dev1 migration details, read [`docs/netheal/DEV1_MIGRATION.md`](docs/netheal/DEV1_MIGRATION.md).
 
 ## Common entry points
 
 - Start server: `.\.venv\Scripts\python.exe cosight_server\deep_research\main.py`
 - NetHeal cockpit: `http://127.0.0.1:7788/cosight/netheal.html`
+- NetHeal secure settings: `http://127.0.0.1:7788/cosight/settings.html`
 - Generic Co-Sight workbench: `http://127.0.0.1:7788/cosight/`
 - API prefix: `/api/netheal/v1`
 - Scenario catalog: `app/netheal/data/scenarios.json`

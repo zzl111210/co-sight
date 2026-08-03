@@ -37,7 +37,7 @@
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {
-      throw new Error(payload.detail || payload.message || "????");
+      throw new Error(payload.detail || payload.message || "请求失败");
     }
     return payload;
   }
@@ -51,34 +51,34 @@
 
     setText("auth-mode", security.auth_mode || "--");
     setText("auth-mode-detail", security.auth_mode || "--");
-    setText("llm-readiness", llm.configured ? "???" : "???");
-    setText("tool-readiness", configuredTools + "/2 ????");
-    setText("network-write", security.real_network_write_enabled ? "???" : "??");
-    setText("model-name", llm.model_name || "???");
-    setText("model-endpoint", llm.api_base_url || "???");
-    setText("model-timeout", (llm.timeout_seconds || 60) + " ?");
-    setText("model-key-state", llm.api_key_present ? "?????????" : "???");
-    setText("token-secret-state", security.token_secret_configured ? "?????????" : "????????");
-    setText("tavily-state", tools.tavily_configured ? "???" : "???");
-    setText("google-state", tools.google_search_configured ? "???" : "???");
+    setText("llm-readiness", llm.configured ? "已就绪" : "待配置");
+    setText("tool-readiness", configuredTools + "/2 可选工具");
+    setText("network-write", security.real_network_write_enabled ? "已启用" : "禁用");
+    setText("model-name", llm.model_name || "未配置");
+    setText("model-endpoint", llm.api_base_url || "未配置");
+    setText("model-timeout", (llm.timeout_seconds || 60) + " 秒");
+    setText("model-key-state", llm.api_key_present ? "已配置（内容隐藏）" : "未配置");
+    setText("token-secret-state", security.token_secret_configured ? "已配置（内容隐藏）" : "开发模式临时密钥");
+    setText("tavily-state", tools.tavily_configured ? "已配置" : "未配置");
+    setText("google-state", tools.google_search_configured ? "已配置" : "未配置");
 
-    setBadge("llm-badge", llm.configured ? "???" : "???", llm.configured ? "success" : "warning");
+    setBadge("llm-badge", llm.configured ? "已就绪" : "待配置", llm.configured ? "success" : "warning");
     setBadge(
       "auth-badge",
-      security.auth_mode === "production" ? "????" : "????",
+      security.auth_mode === "production" ? "生产模式" : "开发模式",
       security.auth_mode === "production" ? "success" : "warning"
     );
-    setBadge("tools-badge", configuredTools + "/2 ???", configuredTools ? "success" : "warning");
+    setBadge("tools-badge", configuredTools + "/2 已配置", configuredTools ? "success" : "warning");
   }
 
   async function loadStatus(showToast = false) {
     try {
       const [health, status] = await Promise.all([api("/health"), api("/config/status")]);
-      setText("service-state", health.status === "healthy" ? "????" : "????");
+      setText("service-state", health.status === "healthy" ? "系统在线" : "服务异常");
       renderStatus(status);
-      if (showToast) notify("???????");
+      if (showToast) notify("配置状态已刷新");
     } catch (error) {
-      setText("service-state", "????");
+      setText("service-state", "连接异常");
       notify(error.message);
     }
   }
@@ -86,24 +86,24 @@
   async function checkLlm() {
     const button = byId("check-llm");
     button.disabled = true;
-    setText("connection-result", "???????????????");
+    setText("connection-result", "正在检查模型提供商，请稍候……");
     try {
       const result = await api("/config/llm/check", { method: "POST" });
       if (result.ok) {
         setText(
           "connection-result",
-          "???? ? HTTP " + result.status_code + " ? " + result.latency_ms + " ms ? " + result.model_name
+          "连接成功 · HTTP " + result.status_code + " · " + result.latency_ms + " ms · " + result.model_name
         );
-        setBadge("llm-badge", "????", "success");
-        notify("????????");
+        setBadge("llm-badge", "连接正常", "success");
+        notify("模型服务连接成功");
       } else {
-        setText("connection-result", "????? ? " + (result.reason || "???????"));
-        setBadge("llm-badge", "????", "warning");
-        notify("?????????");
+        setText("connection-result", "连接未通过 · " + (result.reason || "提供商返回异常"));
+        setBadge("llm-badge", "连接异常", "warning");
+        notify("模型服务连接未通过");
       }
     } catch (error) {
-      setText("connection-result", "???? ? " + error.message);
-      setBadge("llm-badge", "????", "warning");
+      setText("connection-result", "检查失败 · " + error.message);
+      setBadge("llm-badge", "检查失败", "warning");
       notify(error.message);
     } finally {
       button.disabled = false;
