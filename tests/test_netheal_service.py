@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -192,6 +193,110 @@ class NetHealServiceTests(unittest.TestCase):
         self.assertEqual(reset["active_incidents"], 2)
         self.assertEqual(len(self.service.incidents()), 3)
 
+
+    def test_advanced_api_and_background_demo(self) -> None:
+        original_service = netheal_router._service
+        original_insights = netheal_router._insights
+        netheal_router._service = self.service
+        netheal_router._insights = None
+        try:
+            app = FastAPI()
+            app.include_router(netheal_router.nethealRouter)
+            client = TestClient(app)
+
+            vector = client.get(
+                "/api/netheal/v1/diagnosis/vector-search",
+                params={"q": "UPF CPU 视频时延"},
+            )
+            self.assertEqual(vector.status_code, 200)
+            self.assertEqual(
+                vector.json()["items"][0]["root_cause"],
+                "UPF_OVERLOAD",
+            )
+
+            graph = client.get(
+                "/api/netheal/v1/diagnosis/graph-reasoning",
+                params={"scenario_id": "alarm-storm-composite"},
+            )
+            self.assertEqual(graph.status_code, 200)
+            self.assertTrue(graph.json()["root_candidates"])
+
+            fusion = client.get(
+                "/api/netheal/v1/diagnosis/fusion",
+                params={"scenario_id": "alarm-storm-composite"},
+            )
+            self.assertEqual(fusion.status_code, 200)
+            self.assertEqual(
+                fusion.json()["primary_root_cause"],
+                "COMPOSITE_UPF_OVERLOAD_AND_TRANSMISSION_JITTER",
+            )
+
+            submitted = client.post(
+                "/api/netheal/v1/demo/run",
+                params={"async_mode": "true"},
+                json={
+                    "scenario_id": "upf-overload",
+                    "idempotency_key": f"test-{self.root.name}",
+                },
+                headers={
+                    "X-NetHeal-Actor": "approver-a",
+                    "X-NetHeal-Role": "approver",
+                },
+            )
+            self.assertEqual(submitted.status_code, 200)
+            task_id = submitted.json()["task_id"]
+
+            deadline = time.time() + 5
+            progress_payload = {}
+            while time.time() < deadline:
+                progress = client.get(
+                    f"/api/netheal/v1/tasks/{task_id}/progress"
+                )
+                self.assertEqual(progress.status_code, 200)
+                progress_payload = progress.json()
+                if progress_payload["status"] in {"completed", "failed"}:
+                    break
+                time.sleep(0.02)
+
+            self.assertEqual(progress_payload["status"], "completed")
+            self.assertEqual(progress_payload["progress"]["percent"], 100.0)
+
+            result = client.get(f"/api/netheal/v1/tasks/{task_id}/result")
+            self.assertEqual(result.status_code, 200)
+            self.assertEqual(result.json()["status"], "completed")
+            incident_id = result.json()["result"]["incident"]["id"]
+
+            report = client.get(
+                f"/api/netheal/v1/incidents/{incident_id}/report"
+            )
+            self.assertEqual(report.status_code, 200)
+            self.assertTrue(report.json()["available"]["markdown"])
+
+            download = client.get(
+                f"/api/netheal/v1/incidents/{incident_id}/report/download/md",
+                headers={
+                    "X-NetHeal-Actor": "viewer-a",
+                    "X-NetHeal-Role": "viewer",
+                },
+            )
+            self.assertEqual(download.status_code, 200)
+            self.assertIn("NetHeal-Agent", download.text)
+
+            search = client.get(
+                "/api/netheal/v1/reports/search",
+                params={"q": "UPF"},
+            )
+            self.assertEqual(search.status_code, 200)
+            self.assertGreaterEqual(search.json()["total"], 1)
+
+            explanation = client.get(
+                f"/api/netheal/v1/diagnosis/explain/{incident_id}"
+            )
+            self.assertEqual(explanation.status_code, 200)
+            self.assertTrue(explanation.json()["reasoning_hops"])
+        finally:
+            netheal_router._service = original_service
+            netheal_router._insights = original_insights
 
 if __name__ == "__main__":
     unittest.main()

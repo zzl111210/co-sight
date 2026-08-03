@@ -88,6 +88,7 @@ class TaskQueue:
         retry_delay_seconds: float = 2.0,
         args: tuple = (),
         kwargs: dict | None = None,
+        inject_task_id: bool = False,
     ) -> str:
         """Submit a task for background execution.
 
@@ -99,6 +100,8 @@ class TaskQueue:
             retry_delay_seconds: Base delay between retries (exponential backoff).
             args: Positional arguments for fn.
             kwargs: Keyword arguments for fn.
+            inject_task_id: Pass the generated task id as the callable's first
+                positional argument. Useful for progress-aware jobs.
 
         Returns:
             task_id: Unique identifier for tracking progress and retrieving results.
@@ -127,7 +130,7 @@ class TaskQueue:
 
         future = self._executor.submit(
             self._run_with_retry,
-            task_id, fn, max_retries, retry_delay_seconds, args, kwargs,
+            task_id, fn, max_retries, retry_delay_seconds, args, kwargs, inject_task_id,
         )
         self._futures[task_id] = future
         return task_id
@@ -140,6 +143,7 @@ class TaskQueue:
         retry_delay: float,
         args: tuple,
         kwargs: dict,
+        inject_task_id: bool,
     ) -> None:
         result = self._tasks[task_id]
         result.status = TaskStatus.RUNNING
@@ -154,7 +158,11 @@ class TaskQueue:
                 return
 
             try:
-                output = fn(*args, **kwargs)
+                output = (
+                    fn(task_id, *args, **kwargs)
+                    if inject_task_id
+                    else fn(*args, **kwargs)
+                )
                 result.status = TaskStatus.COMPLETED
                 result.result = output
                 result.completed_at = time.time()
