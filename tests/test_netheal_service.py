@@ -298,5 +298,65 @@ class NetHealServiceTests(unittest.TestCase):
             netheal_router._service = original_service
             netheal_router._insights = original_insights
 
+    def test_bearer_auth_and_safe_configuration_api(self) -> None:
+        original_service = netheal_router._service
+        original_token_service = netheal_router._token_service
+        netheal_router._service = self.service
+        netheal_router._token_service = None
+        try:
+            app = FastAPI()
+            app.include_router(netheal_router.nethealRouter)
+            client = TestClient(app)
+
+            login = client.post(
+                "/api/netheal/v1/auth/login",
+                json={
+                    "actor": "operator-token",
+                    "role": "operator",
+                    "tenant_id": "campus-5g",
+                },
+            )
+            self.assertEqual(login.status_code, 200)
+            token = login.json()["access_token"]
+            headers = {"Authorization": f"Bearer {token}"}
+
+            identity = client.get(
+                "/api/netheal/v1/auth/me",
+                headers=headers,
+            )
+            self.assertEqual(identity.status_code, 200)
+            self.assertEqual(identity.json()["actor"], "operator-token")
+            self.assertEqual(identity.json()["tenant_id"], "campus-5g")
+
+            sites = client.get("/api/netheal/v1/sites")
+            self.assertEqual(sites.status_code, 200)
+            self.assertEqual(sites.json()["items"][0]["id"], "campus-5g")
+            self.assertTrue(sites.json()["items"][0]["simulation_mode"])
+
+            config = client.get("/api/netheal/v1/config/status")
+            self.assertEqual(config.status_code, 200)
+            self.assertNotIn("api_key", config.json()["llm"])
+            self.assertFalse(
+                config.json()["security"]["real_network_write_enabled"]
+            )
+
+            diagnosed = client.post(
+                "/api/netheal/v1/incidents/diagnose",
+                json={
+                    "scenario_id": "upf-overload",
+                    "incident_id": "NH-DEMO-001",
+                },
+                headers=headers,
+            )
+            self.assertEqual(diagnosed.status_code, 200)
+            self.assertEqual(
+                diagnosed.json()["incident"]["status"],
+                "approval_pending",
+            )
+        finally:
+            netheal_router._service = original_service
+            netheal_router._token_service = original_token_service
+
+
 if __name__ == "__main__":
     unittest.main()

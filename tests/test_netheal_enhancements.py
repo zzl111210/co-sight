@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import json
+import os
 import tempfile
 import unittest
+from unittest.mock import patch
 from dataclasses import asdict
 from pathlib import Path
 
@@ -11,6 +13,8 @@ from app.netheal.advanced_diagnosis import (
     GraphReasoner,
     VectorCaseRetriever,
 )
+from app.netheal.auth import AuthRole, TokenService
+from app.netheal.configuration import model_config_status
 from app.netheal.interfaces import (
     ChangeCommand,
     SimulationChangeExecutor,
@@ -157,6 +161,37 @@ class RuntimeEnhancementTests(unittest.TestCase):
             results = engine.search("UPF-01")
             self.assertEqual(len(results), 1)
             self.assertEqual(asdict(results[0])["incident_id"], "NH-001")
+
+
+class SecurityConfigurationTests(unittest.TestCase):
+    def test_signed_token_rejects_tampering(self) -> None:
+        service = TokenService(secret_key="unit-test-secret", max_age_seconds=60)
+        token = service.issue("operator-a", AuthRole.OPERATOR, "campus-5g")
+        context = service.verify(token)
+
+        self.assertEqual(context.actor, "operator-a")
+        self.assertEqual(context.role, AuthRole.OPERATOR)
+        self.assertEqual(context.tenant_id, "campus-5g")
+        with self.assertRaises(PermissionError):
+            service.verify(f"{token}tampered")
+
+    def test_configuration_status_never_returns_secret_values(self) -> None:
+        secret = "sk-unit-test-do-not-leak"
+        with patch.dict(
+            os.environ,
+            {
+                "API_KEY": secret,
+                "API_BASE_URL": "https://provider.example/v1",
+                "MODEL_NAME": "unit-model",
+            },
+            clear=False,
+        ):
+            status = model_config_status()
+
+        self.assertTrue(status["llm"]["configured"])
+        self.assertTrue(status["llm"]["api_key_present"])
+        self.assertNotIn(secret, json.dumps(status, ensure_ascii=False))
+        self.assertFalse(status["security"]["real_network_write_enabled"])
 
 
 if __name__ == "__main__":

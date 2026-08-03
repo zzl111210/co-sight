@@ -10,6 +10,14 @@ from fastapi import APIRouter, Header, HTTPException, Query
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
+from app.netheal.auth import (
+    AuthRole,
+    TokenService,
+    auth_mode,
+    bearer_token,
+    resolve_auth_context,
+)
+from app.netheal.configuration import check_llm_connectivity, model_config_status
 from app.netheal.insights import NetHealInsights
 from app.netheal.reporting import ReportAccessManager
 from app.netheal.service import NetHealService
@@ -24,6 +32,7 @@ from app.netheal.task_queue import TaskStatus, get_task_queue
 _insights: NetHealInsights | None = None
 nethealRouter = APIRouter(prefix="/api/netheal/v1", tags=["NetHeal-Agent"])
 _service: NetHealService | None = None
+_token_service: TokenService | None = None
 
 
 def get_service() -> NetHealService:
@@ -41,6 +50,14 @@ def get_insights() -> NetHealInsights:
     return _insights
 
 
+def get_token_service() -> TokenService:
+    global _token_service
+    if _token_service is None:
+        _token_service = TokenService()
+    return _token_service
+
+
+
 class DiagnoseRequest(BaseModel):
     scenario_id: str = Field(default="upf-overload")
     incident_id: Optional[str] = None
@@ -55,11 +72,31 @@ class DemoRequest(BaseModel):
     idempotency_key: Optional[str] = Field(default=None, max_length=100)
 
 
+class LoginRequest(BaseModel):
+    actor: str = Field(min_length=1, max_length=80)
+    role: AuthRole = Field(default=AuthRole.VIEWER)
+    tenant_id: str = Field(default="default", min_length=1, max_length=80)
+
+
+
+
 def _identity(
     actor: str | None,
     role: str | None,
+    authorization: str | None = None,
+    tenant_id: str | None = None,
 ) -> tuple[str, str]:
-    return actor or "cockpit-user", role or "viewer"
+    try:
+        context = resolve_auth_context(
+            get_token_service(),
+            authorization,
+            actor,
+            role,
+            tenant_id,
+        )
+    except (PermissionError, RuntimeError) as exc:
+        raise HTTPException(status_code=401, detail=str(exc)) from exc
+    return context.actor, context.role.value
 
 
 def _handle(operation):
@@ -71,6 +108,123 @@ def _handle(operation):
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+@nethealRouter.post("/auth/login")
+def login(request: LoginRequest):
+    if auth_mode() == "production":
+        raise HTTPException(
+            status_code=403,
+            detail="local login is disabled in production mode",
+        )
+    token = get_token_service().issue(
+        request.actor,
+        request.role,
+        request.tenant_id,
+    )
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "expires_in": get_token_service().max_age_seconds,
+        "actor": request.actor,
+        "role": request.role.value,
+        "tenant_id": request.tenant_id,
+    }
+
+
+@nethealRouter.post("/auth/refresh")
+def refresh_token(authorization: str | None = Header(default=None)):
+    try:
+        token = bearer_token(authorization)
+        if token is None:
+            raise PermissionError("Bearer authentication is required")
+        refreshed = get_token_service().refresh(token)
+        context = get_token_service().verify(refreshed)
+    except (PermissionError, RuntimeError) as exc:
+        raise HTTPException(status_code=401, detail=str(exc)) from exc
+    return {
+        "access_token": refreshed,
+        "token_type": "bearer",
+        "expires_in": get_token_service().max_age_seconds,
+        "actor": context.actor,
+        "role": context.role.value,
+        "tenant_id": context.tenant_id,
+    }
+
+
+@nethealRouter.get("/auth/me")
+def current_identity(
+    authorization: str | None = Header(default=None),
+    x_netheal_actor: str | None = Header(default=None),
+    x_netheal_role: str | None = Header(default=None),
+    x_netheal_tenant: str | None = Header(default=None),
+):
+    try:
+        context = resolve_auth_context(
+            get_token_service(),
+            authorization,
+            x_netheal_actor,
+            x_netheal_role,
+            x_netheal_tenant,
+        )
+    except (PermissionError, RuntimeError) as exc:
+        raise HTTPException(status_code=401, detail=str(exc)) from exc
+    return {
+        "actor": context.actor,
+        "role": context.role.value,
+        "tenant_id": context.tenant_id,
+    }
+
+
+@nethealRouter.get("/config/status")
+def config_status():
+    return model_config_status()
+
+
+@nethealRouter.post("/config/llm/check")
+def check_llm(
+    authorization: str | None = Header(default=None),
+    x_netheal_actor: str | None = Header(default=None),
+    x_netheal_role: str | None = Header(default=None),
+    x_netheal_tenant: str | None = Header(default=None),
+):
+    _, role = _identity(
+        x_netheal_actor,
+        x_netheal_role,
+        authorization,
+        x_netheal_tenant,
+    )
+    if role not in {
+        AuthRole.OPERATOR.value,
+        AuthRole.APPROVER.value,
+        AuthRole.ADMIN.value,
+    }:
+        raise HTTPException(status_code=403, detail="operator role is required")
+    return check_llm_connectivity()
+
+
+@nethealRouter.get("/sites")
+def sites():
+    grouped: dict[str, int] = {}
+    for scenario in get_service().scenarios():
+        site_id = str(scenario.get("site_id", "campus-5g"))
+        grouped[site_id] = grouped.get(site_id, 0) + 1
+    return {
+        "items": [
+            {
+                "id": site_id,
+                "name": (
+                    "CAMPUS-5G / ????"
+                    if site_id == "campus-5g"
+                    else site_id
+                ),
+                "scenario_count": scenario_count,
+                "status": "online",
+                "simulation_mode": True,
+            }
+            for site_id, scenario_count in sorted(grouped.items())
+        ]
+    }
+
 
 
 @nethealRouter.get("/health")
@@ -103,8 +257,15 @@ def diagnose(
     request: DiagnoseRequest,
     x_netheal_actor: str | None = Header(default=None),
     x_netheal_role: str | None = Header(default=None),
+    authorization: str | None = Header(default=None),
+    x_netheal_tenant: str | None = Header(default=None),
 ):
-    actor, role = _identity(x_netheal_actor, x_netheal_role)
+    actor, role = _identity(
+        x_netheal_actor,
+        x_netheal_role,
+        authorization,
+        x_netheal_tenant,
+    )
     return _handle(
         lambda: get_service().diagnose(
             request.scenario_id,
@@ -121,8 +282,15 @@ def approve(
     request: ApprovalRequest,
     x_netheal_actor: str | None = Header(default=None),
     x_netheal_role: str | None = Header(default=None),
+    authorization: str | None = Header(default=None),
+    x_netheal_tenant: str | None = Header(default=None),
 ):
-    actor, role = _identity(x_netheal_actor, x_netheal_role)
+    actor, role = _identity(
+        x_netheal_actor,
+        x_netheal_role,
+        authorization,
+        x_netheal_tenant,
+    )
     return _handle(
         lambda: get_service().approve(
             incident_id,
@@ -138,8 +306,15 @@ def execute(
     incident_id: str,
     x_netheal_actor: str | None = Header(default=None),
     x_netheal_role: str | None = Header(default=None),
+    authorization: str | None = Header(default=None),
+    x_netheal_tenant: str | None = Header(default=None),
 ):
-    actor, role = _identity(x_netheal_actor, x_netheal_role)
+    actor, role = _identity(
+        x_netheal_actor,
+        x_netheal_role,
+        authorization,
+        x_netheal_tenant,
+    )
     return _handle(lambda: get_service().execute(incident_id, actor, role))
 
 
@@ -148,8 +323,15 @@ def verify(
     incident_id: str,
     x_netheal_actor: str | None = Header(default=None),
     x_netheal_role: str | None = Header(default=None),
+    authorization: str | None = Header(default=None),
+    x_netheal_tenant: str | None = Header(default=None),
 ):
-    actor, role = _identity(x_netheal_actor, x_netheal_role)
+    actor, role = _identity(
+        x_netheal_actor,
+        x_netheal_role,
+        authorization,
+        x_netheal_tenant,
+    )
     return _handle(lambda: get_service().verify(incident_id, actor, role))
 
 
@@ -158,9 +340,16 @@ def run_demo(
     request: DemoRequest,
     x_netheal_actor: str | None = Header(default=None),
     x_netheal_role: str | None = Header(default=None),
+    authorization: str | None = Header(default=None),
+    x_netheal_tenant: str | None = Header(default=None),
     async_mode: bool = Query(default=False),
 ):
-    actor, role = _identity(x_netheal_actor, x_netheal_role)
+    actor, role = _identity(
+        x_netheal_actor,
+        x_netheal_role,
+        authorization,
+        x_netheal_tenant,
+    )
     if async_mode:
         service = get_service()
         queue = get_task_queue()
@@ -214,8 +403,15 @@ def run_demo(
 def reset_demo(
     x_netheal_actor: str | None = Header(default=None),
     x_netheal_role: str | None = Header(default=None),
+    authorization: str | None = Header(default=None),
+    x_netheal_tenant: str | None = Header(default=None),
 ):
-    actor, role = _identity(x_netheal_actor, x_netheal_role)
+    actor, role = _identity(
+        x_netheal_actor,
+        x_netheal_role,
+        authorization,
+        x_netheal_tenant,
+    )
     return _handle(lambda: get_service().reset_demo(actor, role))
 
 
@@ -231,8 +427,9 @@ def metrics(scenario_id: str = "upf-overload"):
 
 @nethealRouter.get("/workflow")
 def workflow():
-
     return get_service().workflow()
+
+
 @nethealRouter.get("/incidents/{incident_id}/report")
 def report_metadata(incident_id: str):
     detail = _handle(lambda: get_service().detail(incident_id))
@@ -260,10 +457,17 @@ def download_report(
     file_type: str,
     x_netheal_actor: str | None = Header(default=None),
     x_netheal_role: str | None = Header(default=None),
+    authorization: str | None = Header(default=None),
+    x_netheal_tenant: str | None = Header(default=None),
 ):
     if file_type not in {"md", "html"}:
         raise HTTPException(status_code=400, detail="file_type must be md or html")
-    actor, role = _identity(x_netheal_actor, x_netheal_role)
+    actor, role = _identity(
+        x_netheal_actor,
+        x_netheal_role,
+        authorization,
+        x_netheal_tenant,
+    )
     if not ReportAccessManager.can_access(role, incident_id, get_service().store):
         raise HTTPException(status_code=403, detail="report access denied")
 
@@ -336,7 +540,25 @@ def task_result(task_id: str):
 
 
 @nethealRouter.post("/tasks/{task_id}/cancel")
-def cancel_task(task_id: str):
+def cancel_task(
+    task_id: str,
+    authorization: str | None = Header(default=None),
+    x_netheal_actor: str | None = Header(default=None),
+    x_netheal_role: str | None = Header(default=None),
+    x_netheal_tenant: str | None = Header(default=None),
+):
+    _, role = _identity(
+        x_netheal_actor,
+        x_netheal_role,
+        authorization,
+        x_netheal_tenant,
+    )
+    if role not in {
+        AuthRole.OPERATOR.value,
+        AuthRole.APPROVER.value,
+        AuthRole.ADMIN.value,
+    }:
+        raise HTTPException(status_code=403, detail="operator role is required")
     if get_task_queue().cancel(task_id):
         return {"task_id": task_id, "status": "cancelled"}
     raise HTTPException(status_code=409, detail="task cannot be cancelled")
@@ -404,7 +626,6 @@ def explain_diagnosis(incident_id: str):
 @nethealRouter.get("/evaluation/charts")
 def evaluation_charts():
     return get_insights().evaluation_charts()
-    return get_service().workflow()
 
 
 @nethealRouter.get("/audit")
