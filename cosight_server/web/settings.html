@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#06111f">
+  <title>NetHeal Agent ? ????</title>
+  <link rel="icon" href="./favicon.ico">
+  <link rel="stylesheet" href="./libs/fontawesome-6.7.2/css/all.min.css">
+  <link rel="stylesheet" href="./styles/netheal.css">
+  <link rel="stylesheet" href="./styles/netheal-settings.css">
+</head>
+<body class="settings-page">
+  <div class="ambient-grid" aria-hidden="true"></div>
+  <header class="topbar">
+    <a class="brand" href="./netheal.html" aria-label="?? NetHeal ????">
+      <span class="brand-mark"><i class="fa-solid fa-wave-square"></i></span>
+      <span>
+        <strong>NETHEAL <em>AGENT</em></strong>
+        <small>SECURE OPERATIONS SETTINGS</small>
+      </span>
+    </a>
+    <div class="site-identity">
+      <span class="eyebrow">???</span>
+      <strong><i class="fa-solid fa-shield-halved"></i> CAMPUS-5G / ????</strong>
+    </div>
+    <div class="top-actions">
+      <div class="live-state"><span class="pulse"></span><span id="service-state">?????</span></div>
+      <span class="clock" id="system-clock">--:--:--</span>
+      <a class="ghost-button" href="./netheal.html">
+        <i class="fa-solid fa-arrow-left"></i><span>??????</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="settings-shell">
+    <section class="settings-hero">
+      <div>
+        <p class="eyebrow">READ-ONLY CONFIGURATION CONSOLE</p>
+        <h1>?????????</h1>
+        <p>?????????????????????????????????? API ???</p>
+      </div>
+      <div class="hero-actions">
+        <button class="ghost-button" id="refresh-status" type="button">
+          <i class="fa-solid fa-rotate"></i><span>????</span>
+        </button>
+        <button class="primary-action" id="check-llm" type="button">
+          <i class="fa-solid fa-plug-circle-check"></i><span>??????</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="readiness-strip" aria-label="?????">
+      <div><span>????</span><strong id="auth-mode">--</strong></div>
+      <div><span>????</span><strong id="llm-readiness">--</strong></div>
+      <div><span>????</span><strong id="tool-readiness">--</strong></div>
+      <div><span>??????</span><strong id="network-write">??</strong></div>
+    </section>
+
+    <section class="settings-grid">
+      <article class="settings-card">
+        <div class="card-heading">
+          <span class="card-icon cyan"><i class="fa-solid fa-brain"></i></span>
+          <div><p class="eyebrow">MODEL PROVIDER</p><h2>?????</h2></div>
+          <span class="status-badge" id="llm-badge">???</span>
+        </div>
+        <dl class="config-list">
+          <div><dt>????</dt><dd id="model-name">--</dd></div>
+          <div><dt>????</dt><dd id="model-endpoint">--</dd></div>
+          <div><dt>????</dt><dd id="model-timeout">--</dd></div>
+          <div><dt>????</dt><dd id="model-key-state">???????</dd></div>
+        </dl>
+        <div class="connection-result" id="connection-result">
+          ????????????????????????
+        </div>
+      </article>
+
+      <article class="settings-card">
+        <div class="card-heading">
+          <span class="card-icon violet"><i class="fa-solid fa-user-lock"></i></span>
+          <div><p class="eyebrow">IDENTITY & ACCESS</p><h2>?????</h2></div>
+          <span class="status-badge" id="auth-badge">???</span>
+        </div>
+        <dl class="config-list">
+          <div><dt>????</dt><dd id="auth-mode-detail">--</dd></div>
+          <div><dt>??????</dt><dd id="token-secret-state">--</dd></div>
+          <div><dt>????</dt><dd>viewer / operator / approver / admin</dd></div>
+          <div><dt>????</dt><dd>???????????</dd></div>
+        </dl>
+        <p class="card-note"><i class="fa-solid fa-circle-info"></i> ????????????????????????? Bearer Token?</p>
+      </article>
+
+      <article class="settings-card">
+        <div class="card-heading">
+          <span class="card-icon amber"><i class="fa-solid fa-screwdriver-wrench"></i></span>
+          <div><p class="eyebrow">OPTIONAL TOOLS</p><h2>??????</h2></div>
+          <span class="status-badge" id="tools-badge">???</span>
+        </div>
+        <div class="tool-status-list">
+          <div><span><i class="fa-solid fa-magnifying-glass"></i> Tavily ??</span><strong id="tavily-state">--</strong></div>
+          <div><span><i class="fa-brands fa-google"></i> Google Search</span><strong id="google-state">--</strong></div>
+          <div><span><i class="fa-solid fa-database"></i> ???????</span><strong class="ok-text">???</strong></div>
+          <div><span><i class="fa-solid fa-diagram-project"></i> ??????</span><strong class="ok-text">???</strong></div>
+        </div>
+      </article>
+
+      <article class="settings-card guardrail-card">
+        <div class="card-heading">
+          <span class="card-icon green"><i class="fa-solid fa-shield"></i></span>
+          <div><p class="eyebrow">OPERATION GUARDRAILS</p><h2>??????</h2></div>
+          <span class="status-badge success">??</span>
+        </div>
+        <ul class="guardrail-list">
+          <li><i class="fa-solid fa-check"></i><span>??????????????????? dry-run?</span></li>
+          <li><i class="fa-solid fa-check"></i><span>????????????????????</span></li>
+          <li><i class="fa-solid fa-check"></i><span>?????????????????????</span></li>
+          <li><i class="fa-solid fa-check"></i><span>?????????? API Key ????????</span></li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="setup-guide">
+      <div>
+        <p class="eyebrow">LOCAL CONFIGURATION</p>
+        <h2>??????</h2>
+      </div>
+      <ol>
+        <li><span>01</span><p>?? <code>.env_template</code> ?? Git ??? <code>.env</code>?</p></li>
+        <li><span>02</span><p>???????????????????????????????</p></li>
+        <li><span>03</span><p>?????????????????????</p></li>
+      </ol>
+    </section>
+  </main>
+
+  <div class="settings-toast" id="settings-toast" role="status" aria-live="polite"></div>
+  <script src="./js/netheal-settings.js"></script>
+</body>
+</html>
