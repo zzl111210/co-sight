@@ -121,10 +121,10 @@ class NetHealServiceTests(unittest.TestCase):
 
             scenarios = client.get("/api/netheal/v1/scenarios")
             self.assertEqual(scenarios.status_code, 200)
-            self.assertEqual(len(scenarios.json()["items"]), 3)
+            self.assertEqual(len(scenarios.json()["items"]), 4)
             self.assertEqual(
                 {item["test_case_id"] for item in scenarios.json()["items"]},
-                {"TC-01", "TC-02", "TC-03"},
+                {"TC-01", "TC-02", "TC-03", "TC-06"},
             )
 
             incidents = client.get("/api/netheal/v1/incidents")

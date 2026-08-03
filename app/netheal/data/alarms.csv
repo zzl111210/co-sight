@@ -13,3 +13,13 @@ C001,2026-07-30T12:00:00+08:00,campus-5g,slice-capacity-shortage,major,NSSMF,sli
 C002,2026-07-30T12:00:04+08:00,campus-5g,slice-capacity-shortage,major,NSSMF,slice-urllc,SLICE_LATENCY_HIGH,latency_ms,32,20,Industrial-control latency exceeded SLA,CG-SLICE-URLLC
 C003,2026-07-30T12:00:08+08:00,campus-5g,slice-capacity-shortage,warning,NSSMF,slice-urllc,SLICE_BANDWIDTH_SATURATION,bandwidth_utilization_pct,97,90,URLLC bandwidth remained saturated,CG-SLICE-URLLC
 C004,2026-07-30T12:00:12+08:00,campus-5g,slice-capacity-shortage,warning,OSS,industrial-control,SLA_VIOLATION,count,12,1,Industrial-control SLA violations accumulated,CG-SLICE-URLLC
+D001,2026-07-30T13:00:00+08:00,campus-5g,alarm-storm-composite,critical,5GC,UPF-01,UPF_CPU_HIGH,cpu_usage_pct,96,85,UPF CPU exceeded critical threshold amid alarm storm,CG-COMPOSITE-01
+D002,2026-07-30T13:00:01+08:00,campus-5g,alarm-storm-composite,major,Transport,LINK-01,TRANSMISSION_JITTER,jitter_ms,15,5,Backhaul link jitter spiked,CG-COMPOSITE-01
+D003,2026-07-30T13:00:02+08:00,campus-5g,alarm-storm-composite,critical,5GC,UPF-01,USER_PLANE_LATENCY_HIGH,latency_ms,120,30,Video service latency severely degraded,CG-COMPOSITE-01
+D004,2026-07-30T13:00:03+08:00,campus-5g,alarm-storm-composite,major,NMS,slice-video,PACKET_LOSS_HIGH,packet_loss_pct,4.2,0.5,Video slice packet loss spiked,CG-COMPOSITE-01
+D005,2026-07-30T13:00:04+08:00,campus-5g,alarm-storm-composite,major,5GC,UPF-01,THROUGHPUT_DROP,throughput_mbps,620,850,UPF throughput dropped below baseline,CG-COMPOSITE-01
+D006,2026-07-30T13:00:05+08:00,campus-5g,alarm-storm-composite,warning,RAN,gNodeB-01,CELL_CONGESTION,attach_success_pct,88,95,Cell congestion due to upstream degradation,CG-COMPOSITE-01
+D007,2026-07-30T13:00:06+08:00,campus-5g,alarm-storm-composite,warning,OSS,slice-video,USER_COMPLAINT,count,45,5,Mass user complaints about video stalling,CG-COMPOSITE-01
+D008,2026-07-30T13:00:07+08:00,campus-5g,alarm-storm-composite,warning,NMS,slice-video,PACKET_LOSS_HIGH,packet_loss_pct,3.8,0.5,Repeated packet loss alarm,CG-COMPOSITE-01
+D009,2026-07-30T13:00:08+08:00,campus-5g,alarm-storm-composite,major,Transport,LINK-01,LINK_FLAPPING,flap_count,8,3,Backhaul link flapping detected,CG-COMPOSITE-01
+D010,2026-07-30T13:00:09+08:00,campus-5g,alarm-storm-composite,warning,5GC,UPF-01,THROUGHPUT_SATURATION,throughput_mbps,880,850,UPF throughput at capacity limit,CG-COMPOSITE-01

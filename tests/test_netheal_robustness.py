@@ -12,7 +12,8 @@ class NetHealRobustnessTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             result = evaluate_robustness(temp_dir, seeds_per_profile=2)
 
-            self.assertEqual(result["case_count"], 36)
+            self.assertEqual(result["scenario_count"], 4)
+            self.assertEqual(result["case_count"], 48)
             self.assertGreater(
                 result["netheal_accuracy_pct"],
                 result["single_alarm_baseline_accuracy_pct"],

@@ -209,6 +209,7 @@ class NetHealService:
             "upf-overload": "critical",
             "backhaul-link-down": "critical",
             "slice-capacity-shortage": "major",
+            "alarm-storm-composite": "critical",
         }.get(scenario_id, "major")
         incident = Incident(
             id=self._incident_id(),

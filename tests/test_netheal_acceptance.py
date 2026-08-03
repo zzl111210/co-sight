@@ -13,10 +13,10 @@ class NetHealAcceptanceTests(unittest.TestCase):
             report = run_acceptance(Path(temp_dir))
 
             self.assertTrue(report["summary"]["all_passed"])
-            self.assertEqual(report["summary"]["total"], 5)
+            self.assertEqual(report["summary"]["total"], 6)
             self.assertEqual(
                 {item["test_case_id"] for item in report["results"]},
-                {"TC-01", "TC-02", "TC-03", "TC-04", "TC-05"},
+                {"TC-01", "TC-02", "TC-03", "TC-04", "TC-05", "TC-06"},
             )
             self.assertTrue(Path(report["artifacts"]["json"]).is_file())
             self.assertTrue(Path(report["artifacts"]["markdown"]).is_file())
