@@ -35,15 +35,64 @@ else:
     logger.info("Langfuse tracing disabled")
 
 
+<<<<<<< Updated upstream
+=======
+def safe_model_config(model_config: dict) -> dict:
+    """Return a log-safe copy without exposing API credentials."""
+    safe_config = dict(model_config)
+    api_key = safe_config.get("api_key")
+    if api_key:
+        safe_config["api_key"] = f"{api_key[:4]}****{api_key[-4:]}"
+    return safe_config
+
+
+def _check_model_connectivity(model_config: dict) -> tuple[bool, str]:
+    """Quick connectivity check to the configured LLM API endpoint.
+    
+    Returns (ok, message). Does NOT consume tokens – uses a minimal models.list() call.
+    """
+    if not model_config.get("api_key") or "如：" in str(model_config.get("api_key", "")):
+        return False, "API Key 未配置或仍为模板占位符，请在 .env 中设置真实的 API_KEY。"
+    if not model_config.get("base_url"):
+        return False, "API Base URL 未配置，请在 .env 中设置 API_BASE_URL。"
+
+    try:
+        import httpx
+        client = httpx.Client(verify=False, trust_env=False, timeout=httpx.Timeout(connect=10.0, read=15.0))
+        headers = {"Authorization": f"Bearer {model_config['api_key']}"}
+        resp = client.get(
+            f"{model_config['base_url'].rstrip('/')}/models",
+            headers=headers,
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            model_ids = [m.get("id", "") for m in data.get("data", [])[:5]]
+            return True, f"模型服务连通正常（可用模型: {', '.join(model_ids) if model_ids else '已连接'}）"
+        elif resp.status_code == 401:
+            return False, f"API Key 认证失败（HTTP {resp.status_code}），请检查 .env 中的 API_KEY 是否正确。"
+        else:
+            return False, f"模型服务返回异常状态码 {resp.status_code}: {resp.text[:200]}"
+    except httpx.ConnectError:
+        return False, f"无法连接到 {model_config['base_url']}，请检查网络和 API_BASE_URL 配置。"
+    except httpx.TimeoutException:
+        return False, f"连接 {model_config['base_url']} 超时，请检查网络或代理设置。"
+    except Exception as exc:
+        return False, f"模型连通性检测失败: {str(exc)[:200]}"
+
+
+>>>>>>> Stashed changes
 def set_model(model_config: dict[str, Optional[str | int | float]]):
     # 从环境变量读取超时配置（秒），默认180秒（3分钟）
     timeout_seconds = float(os.environ.get("LLM_TIMEOUT", "180"))
     
     http_client_kwargs = {
+<<<<<<< Updated upstream
         "headers": {
             'Content-Type': 'application/json',
             'Authorization': model_config['api_key']
         },
+=======
+>>>>>>> Stashed changes
         "verify": False,
         "trust_env": False,
         "timeout": httpx.Timeout(
@@ -99,3 +148,32 @@ llm_for_vision = set_model(vision_model_config)
 credibility_model_config = get_credibility_model_config()
 logger.info(f"credibility_model_config:{credibility_model_config}\n")
 llm_for_credibility = set_model(credibility_model_config)
+
+
+# ---- 启动时模型连通性检测 ----
+def _run_connectivity_checks():
+    """Check LLM connectivity at startup; log warnings but never crash the server."""
+    logger.info("\n=== 大模型连通性检测 ===")
+    checked = set()
+    for label, cfg in [
+        ("主模型 (Plan)", plan_model_config),
+        ("执行模型 (Act)", act_model_config),
+        ("工具模型 (Tool)", tool_model_config),
+        ("视觉模型 (Vision)", vision_model_config),
+        ("可信分析模型 (Credibility)", credibility_model_config),
+    ]:
+        cfg_key = (cfg.get("base_url"), cfg.get("api_key"))
+        if cfg_key in checked:
+            continue
+        checked.add(cfg_key)
+        ok, msg = _check_model_connectivity(cfg)
+        if ok:
+            logger.info(f"  ✅ {label}: {msg}")
+        else:
+            logger.warning(f"  ⚠️ {label}: {msg}")
+    logger.info("=== 连通性检测完成 ===\n")
+
+
+# 延迟到模块导入完成后再执行（避免循环导入），但不在导入时阻塞
+import threading
+threading.Thread(target=_run_connectivity_checks, daemon=True).start()
