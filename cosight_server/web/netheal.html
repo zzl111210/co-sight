@@ -55,6 +55,7 @@
             <option value="upf-overload">TC-01 · UPF过载</option>
             <option value="backhaul-link-down">TC-02 · 回传链路中断</option>
             <option value="slice-capacity-shortage">TC-03 · URLLC切片不足</option>
+            <option value="alarm-storm-composite">TC-06 · 复合告警风暴</option>
           </select>
         </label>
         <button class="secondary-button" id="reset-demo">
@@ -148,7 +149,12 @@
             <span class="eyebrow">INCIDENT INTELLIGENCE</span>
             <h2>事件研判</h2>
           </div>
-          <span class="status-pill muted" id="detail-status">未选择</span>
+          <div class="panel-header-actions">
+            <button class="icon-button" id="download-report" title="下载闭环报告" disabled>
+              <i class="fa-solid fa-file-arrow-down"></i>
+            </button>
+            <span class="status-pill muted" id="detail-status">未选择</span>
+          </div>
         </div>
         <div class="incident-hero" id="incident-hero">
           <div class="empty-state">
@@ -171,6 +177,7 @@
             </div>
             <h4 id="detail-root-cause">等待诊断</h4>
             <p id="detail-impact">尚无影响面分析。</p>
+            <div class="candidate-strip" id="root-candidates"></div>
           </div>
           <div class="section-title"><span>多源证据</span><small id="evidence-count">0 项</small></div>
           <div class="evidence-grid" id="evidence-grid"></div>
@@ -239,7 +246,8 @@
       <span class="operation-spinner"></span>
       <h3 id="operation-title">智能体正在协同分析</h3>
       <p id="operation-message">正在聚合告警、KPI、拓扑和知识库证据……</p>
-      <div class="operation-progress"><span></span></div>
+      <small id="operation-stage">等待任务启动</small>
+      <div class="operation-progress"><span id="operation-progress-bar"></span></div>
     </div>
   </div>
 

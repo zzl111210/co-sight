@@ -11,9 +11,12 @@
     workflow: [],
     audit: [],
     scenarios: [],
+    metrics: [],
     filter: "all",
     busy: false,
   };
+
+  let eventSource = null;
 
   const els = {};
   const byId = (id) => document.getElementById(id);
@@ -61,6 +64,7 @@
       "action-diagnose", "action-approve", "action-execute", "action-verify",
       "workflow-rail", "validation-badge", "kpi-comparison", "audit-list",
       "incident-timeline", "refresh-audit", "toast-stack", "operation-overlay", "operation-title",
+      "root-candidates", "download-report", "operation-stage", "operation-progress-bar",
       "operation-message",
     ].forEach((id) => { els[id] = byId(id); });
   }
@@ -105,6 +109,7 @@
     const rootCauseNames = {
       UPF_OVERLOAD: "UPF 节点过载",
       BACKHAUL_LINK_DOWN: "基站回传链路中断",
+      COMPOSITE_UPF_OVERLOAD_AND_TRANSMISSION_JITTER: "UPF过载叠加传输抖动",
       SLICE_CAPACITY_SHORTAGE: "网络切片资源配置不足",
     };
     const repairRoot = pick(raw, ["repair", "repair_plan"], {}) || {};
@@ -116,6 +121,7 @@
     const repair = Array.isArray(repairRoot)
       ? repairRoot
       : pick(repairRoot, ["actions"], pick(repairRoot.plan, ["actions"], []));
+    const evidence = pick(raw, ["evidence", "evidence_chain"], pick(diagnosis, ["evidence"], {})) || {};
     return {
       ...raw,
       id: String(pick(raw, ["id", "incident_id"], "")),
@@ -132,10 +138,12 @@
       rootResource: pick(raw, ["root_resource", "resource_id"], ""),
       confidence: Number(pick(raw, ["confidence"], pick(diagnosis, ["confidence", "score"], 0))) || 0,
       impact: pick(raw, ["impact_scope", "impact"], pick(diagnosis, ["impact_scope", "impact"], pick(raw, ["affected_service"], ""))),
-      evidence: pick(raw, ["evidence", "evidence_chain"], pick(diagnosis, ["evidence"], {})) || {},
+      evidence,
       repairPlan: Array.isArray(repair) ? repair : asArray(pick(repair, ["actions", "steps"], [])),
       verification,
       verificationPassed: Boolean(pick(raw, ["verification_passed"], pick(verification, ["passed", "success"], false))),
+      candidates: asArray(pick(evidence, ["ranked_candidates", "candidates"], [])),
+      report: pick(repairRoot, ["report"], {}) || {},
     };
   }
 
@@ -311,6 +319,8 @@
       els["detail-content"].classList.add("hidden");
       els["detail-status"].textContent = "未选择";
       els["detail-status"].className = "status-pill muted";
+      els["root-candidates"].innerHTML = "";
+      els["download-report"].disabled = true;
       return;
     }
 
@@ -329,6 +339,24 @@
     els["detail-impact"].textContent = incident.impact || "尚未完成业务影响面分析。";
 
     const entries = evidenceEntries(incident.evidence);
+    const candidates = incident.candidates.slice(0, 3);
+    els["root-candidates"].innerHTML = candidates.map((candidate, index) => {
+      const label = pick(
+        candidate,
+        ["title", "root_cause", "root_resource"],
+        "候选根因",
+      );
+      return `
+        <div class="candidate-chip" title="${escapeHtml(label)}">
+          <span class="candidate-rank">${index + 1}</span>
+          <span class="candidate-name">${escapeHtml(label)}</span>
+          <strong class="candidate-confidence">${Math.round(percentage(candidate.confidence))}%</strong>
+        </div>`;
+    }).join("");
+    els["download-report"].disabled = !(
+      incident.report?.markdown_path || incident.report?.html_path
+    );
+
     els["evidence-count"].textContent = `${entries.length} 项`;
     els["evidence-grid"].innerHTML = entries.length
       ? entries.map((entry) => `
@@ -538,6 +566,7 @@
       return `
         <article class="kpi-item">
           <header><span>${escapeHtml(metric.label)}</span><strong>${valid ? `${improvement.toFixed(1)}%` : "--"}</strong></header>
+          <svg class="kpi-sparkline" data-metric="${escapeHtml(metric.key)}" viewBox="0 0 160 28" preserveAspectRatio="none"></svg>
           <div class="kpi-values">
             <div><span>修复前</span><strong>${valid ? escapeHtml(metric.before) : "--"}${escapeHtml(metric.unit)}</strong></div>
             <i class="fa-solid fa-arrow-right"></i>
@@ -545,8 +574,57 @@
           </div>
         </article>`;
     }).join("");
+    renderKpiSparklines();
   }
 
+
+  function renderKpiSparklines() {
+    const phaseOrder = { baseline: 0, incident: 1, post_repair: 2 };
+    document.querySelectorAll(".kpi-sparkline").forEach((node) => {
+      const rows = state.metrics
+        .filter((item) => item.metric === node.dataset.metric)
+        .sort((left, right) => (
+          (phaseOrder[left.phase] ?? 99) - (phaseOrder[right.phase] ?? 99)
+        ));
+      if (rows.length < 2 || typeof d3 === "undefined") return;
+
+      const values = rows.map((item) => Number(item.value)).filter(Number.isFinite);
+      const threshold = Number(rows.find((item) => Number.isFinite(Number(item.threshold)))?.threshold);
+      const upper = Math.max(...values, Number.isFinite(threshold) ? threshold : 0, 1);
+      const x = d3.scalePoint()
+        .domain(rows.map((item) => item.phase))
+        .range([8, 152])
+        .padding(0.1);
+      const y = d3.scaleLinear()
+        .domain([0, upper * 1.12])
+        .range([24, 4]);
+      const svg = d3.select(node);
+      svg.selectAll("*").remove();
+
+      if (Number.isFinite(threshold)) {
+        svg.append("line")
+          .attr("class", "trend-threshold")
+          .attr("x1", 4)
+          .attr("x2", 156)
+          .attr("y1", y(threshold))
+          .attr("y2", y(threshold));
+      }
+      svg.append("path")
+        .datum(rows)
+        .attr("class", "trend-line")
+        .attr("d", d3.line()
+          .x((item) => x(item.phase))
+          .y((item) => y(Number(item.value)))
+          .curve(d3.curveMonotoneX));
+      svg.selectAll("circle")
+        .data(rows)
+        .join("circle")
+        .attr("cx", (item) => x(item.phase))
+        .attr("cy", (item) => y(Number(item.value)))
+        .attr("r", 3)
+        .attr("fill", (item) => item.phase === "incident" ? "#ff4f7b" : "#34e8a7");
+    });
+  }
   function normalizeTopology(payload) {
     const topology = unwrap(payload, "topology") || payload || {};
     const rawNodes = asArray(pick(topology, ["nodes", "network_elements"], []));
@@ -764,6 +842,15 @@
       if (index >= 0) state.incidents[index] = state.selected;
       renderSelected();
       renderIncidents();
+      try {
+        const metricsPayload = await api(
+          `/metrics?scenario_id=${encodeURIComponent(incident.scenarioId)}`,
+        );
+        state.metrics = asArray(pick(metricsPayload, ["series", "items"], []));
+        renderKpis();
+      } catch {
+        state.metrics = [];
+      }
       await loadTopology();
     } catch (error) {
       showToast("事件详情加载失败", error.message, "error");
@@ -876,8 +963,12 @@
   function setBusy(value, title = "", message = "") {
     state.busy = value;
     els["operation-overlay"].classList.toggle("hidden", !value);
+    const progressTrack = els["operation-progress-bar"].parentElement;
+    progressTrack.classList.remove("determinate");
+    els["operation-progress-bar"].style.width = "";
     if (title) els["operation-title"].textContent = title;
     if (message) els["operation-message"].textContent = message;
+    els["operation-stage"].textContent = value ? "正在初始化任务" : "";
     els["run-demo"].disabled = value;
     els["reset-demo"].disabled = value;
     els["scenario-selector"].disabled = value;
@@ -931,6 +1022,32 @@
     }
   }
 
+  function updateTaskOverlay(payload) {
+    const progress = payload.progress || {};
+    const percent = Math.max(0, Math.min(100, Number(progress.percent) || 0));
+    els["operation-title"].textContent = progress.stage_label || "多智能体协同处理中";
+    els["operation-message"].textContent = progress.message || "正在等待下一阶段执行。";
+    els["operation-stage"].textContent = `阶段 ${Number(progress.stage || 0) + 1}/${progress.total_stages || 6} · ${percent.toFixed(0)}%`;
+    els["operation-progress-bar"].parentElement.classList.add("determinate");
+    els["operation-progress-bar"].style.width = `${percent}%`;
+  }
+
+  async function waitForTask(taskId) {
+    const deadline = Date.now() + 60000;
+    while (Date.now() < deadline) {
+      const progress = await api(`/tasks/${encodeURIComponent(taskId)}/progress`);
+      updateTaskOverlay(progress);
+      if (progress.status === "completed") {
+        return api(`/tasks/${encodeURIComponent(taskId)}/result`);
+      }
+      if (progress.status === "failed" || progress.status === "cancelled") {
+        throw new Error(progress.error || `后台任务状态：${progress.status}`);
+      }
+      await new Promise((resolve) => window.setTimeout(resolve, 180));
+    }
+    throw new Error("后台任务执行超时，请在任务中心检查运行状态");
+  }
+
   async function runDemo() {
     if (state.busy) return;
     const scenarioId = els["scenario-selector"].value || "upf-overload";
@@ -939,21 +1056,26 @@
     const scenarioTitle = pick(scenario, ["title"], scenarioId);
     setBusy(
       true,
-      `${testCaseId} 全自动闭环运行中`,
-      `${scenarioTitle}：五类智能体正通过 Co-Sight DAG 完成诊断、决策、仿真执行与验证。`,
+      `${testCaseId} 后台闭环任务已启动`,
+      `${scenarioTitle}：正在创建可追踪的多智能体任务。`,
     );
     try {
-      const payload = await api("/demo/run", {
+      const submitted = await api("/demo/run?async_mode=true", {
         method: "POST",
-        body: JSON.stringify({ scenario_id: scenarioId }),
+        body: JSON.stringify({
+          scenario_id: scenarioId,
+          idempotency_key: `ui-${scenarioId}-${Date.now()}`,
+        }),
       });
-      const result = unwrap(payload, "incident") || unwrap(payload, "result") || payload;
+      const task = await waitForTask(submitted.task_id);
+      const operation = task.result || {};
+      const result = unwrap(operation, "incident") || operation;
       const id = pick(result, ["id", "incident_id"], state.selectedId);
       if (id) state.selectedId = String(id);
       await refreshAll(true);
       showToast(
         `${testCaseId} 闭环测试通过`,
-        `${scenarioTitle}已完成诊断、审批、仿真执行、KPI 恢复验证和报告生成。`,
+        `${scenarioTitle}已完成诊断、审批、仿真执行、KPI验证与报告归档。`,
         "success",
       );
     } catch (error) {
@@ -963,6 +1085,62 @@
     }
   }
 
+  async function downloadReport() {
+    if (!state.selectedId || els["download-report"].disabled) return;
+    const role = els["role-selector"]?.value || "viewer";
+    try {
+      const response = await fetch(
+        `${API_BASE}/incidents/${encodeURIComponent(state.selectedId)}/report/download/md`,
+        {
+          headers: {
+            "X-NetHeal-Actor": `dashboard-${role}`,
+            "X-NetHeal-Role": role,
+          },
+        },
+      );
+      if (!response.ok) {
+        let detail = `HTTP ${response.status}`;
+        try {
+          const payload = await response.json();
+          detail = payload.detail || detail;
+        } catch {
+          // Keep the HTTP fallback.
+        }
+        throw new Error(detail);
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `NetHeal_${state.selectedId}.md`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      showToast("报告下载已开始", "闭环证据、处置与KPI验证已写入Markdown报告。", "success");
+    } catch (error) {
+      showToast("报告下载失败", humanizeError(error.message), "error");
+    }
+  }
+
+  function connectEventStream() {
+    if (!window.EventSource || eventSource) return;
+    eventSource = new EventSource(`${API_BASE}/stream`);
+    eventSource.addEventListener("agent_started", (event) => {
+      if (!state.busy) return;
+      try {
+        const payload = JSON.parse(event.data);
+        if (payload.message) els["operation-message"].textContent = payload.message;
+      } catch {
+        // Task polling remains authoritative if an optional stream event is malformed.
+      }
+    });
+    eventSource.addEventListener("status_changed", () => {
+      if (!state.busy && document.visibilityState === "visible") refreshAll(true);
+    });
+    window.addEventListener("beforeunload", () => eventSource?.close(), { once: true });
+  }
+
   async function resetDemo() {
     if (state.busy) return;
     const previousRole = els["role-selector"].value;
@@ -970,7 +1148,7 @@
       showToast("需要管理员权限", "请将右上角角色切换为“系统管理员”后重置演示数据。", "error");
       return;
     }
-    setBusy(true, "正在重置演示环境", "清理事件状态并重新载入三类 5G 专网基准故障。");
+    setBusy(true, "正在重置演示环境", "清理事件状态并重新载入四类5G专网基准故障。");
     try {
       await api("/demo/reset", { method: "POST", body: "{}" });
       state.selectedId = null;
@@ -1040,6 +1218,7 @@
     els["run-demo"].addEventListener("click", runDemo);
     els["reset-demo"].addEventListener("click", resetDemo);
     els["refresh-audit"].addEventListener("click", () => loadAudit(false));
+    els["download-report"].addEventListener("click", downloadReport);
     window.addEventListener("resize", debounce(renderTopology, 180));
   }
 
@@ -1064,6 +1243,7 @@
     try {
       await loadScenarios();
       await refreshAll(false);
+      connectEventStream();
     } catch (error) {
       showToast("NetHeal 服务尚未就绪", `${error.message}。请确认后端已启动。`, "error");
     }
