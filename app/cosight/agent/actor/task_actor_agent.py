@@ -15,7 +15,7 @@
 
 import os
 import re
-from typing import Dict
+from typing import Any, Dict
 
 from app.agent_dispatcher.infrastructure.entity.AgentInstance import AgentInstance
 from app.cosight.agent.actor.prompt.actor_prompt import actor_system_prompt, actor_system_prompt_zh, actor_execute_task_prompt, actor_execute_task_prompt_zh
@@ -41,6 +41,7 @@ from app.cosight.tool.video_analysis_toolkit import VideoTool
 from app.cosight.tool.html_visualization_toolkit import HtmlVisualizationToolkit
 from app.netheal.network_toolkit import NetworkToolkit
 from app.netheal.prompts import build_netheal_actor_guidance
+from app.netheal.scenario_context import align_netheal_tool_args
 from config.config import get_tavily_config
 from app.common.logger_util import logger
 
@@ -101,7 +102,6 @@ class TaskActorAgent(BaseAgent):
         all_functions = {"mark_step": act_toolkit.mark_step,
                          # "deep_search": deep_search_toolkit.deep_search,
                         #  "search_baidu": search_baidu,
-                         "search_google": search_toolkit.search_google,
                          "search_wiki": search_toolkit.search_wiki,
                          "tavily_search": search_toolkit.tavily_search,
                         #  "image_search": tavily_search.search,
@@ -150,6 +150,30 @@ class TaskActorAgent(BaseAgent):
         else:
             sys_prompt = actor_system_prompt(self.work_space_path)
         self.history.append({"role": "system", "content": sys_prompt})
+
+    def _normalize_tool_args(
+        self,
+        function_to_call,
+        raw_args: Dict[str, Any],
+        function_name: str = "",
+    ) -> Dict[str, Any]:
+        """Normalize generic arguments, then enforce NetHeal scenario consistency."""
+        normalized = super()._normalize_tool_args(
+            function_to_call,
+            raw_args,
+            function_name,
+        )
+        aligned = align_netheal_tool_args(
+            function_name,
+            normalized,
+            self.question or "",
+        )
+        if aligned != normalized:
+            logger.info(
+                f"NetHeal scenario context aligned: function={function_name}, "
+                f"before={normalized}, after={aligned}"
+            )
+        return aligned
 
     @time_record
     def act(self, question, step_index):

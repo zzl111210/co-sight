@@ -255,7 +255,6 @@ coll = COLLECT(
         # 替换所有 API 密钥为占位符
         example_env_content = re.sub(r'(API_KEY=)([^\s]+)', r'\1your-key-here', example_env_content)
         example_env_content = re.sub(r'(TAVILY_API_KEY=)([^\s]+)', r'\1tvly-dev-your-key-here', example_env_content)
-        example_env_content = re.sub(r'(GOOGLE_API_KEY=)([^\s]+)', r'\1your-key-here', example_env_content)
         
         # 将示例 .env 文件复制到输出目录
         dist_env_file = os.path.join(output_dir, '.env.example')
@@ -306,8 +305,6 @@ coll = COLLECT(
 
 #### 搜索工具配置（可选）
 - `TAVILY_API_KEY`: Tavily搜索API密钥
-- `GOOGLE_API_KEY`: Google搜索API密钥
-- `SEARCH_ENGINE_ID`: Google自定义搜索引擎ID
 
 **重要提示：**
 - 配置文件中的 API 密钥是敏感信息，请勿分享给他人

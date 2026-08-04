@@ -266,33 +266,33 @@ body.cosight-app {
 .landing-content {
     position: relative;
     z-index: 2;
-    width: min(1240px, 100%);
+    width: min(1580px, 100%);
     display: grid;
-    grid-template-columns: minmax(400px, 0.86fr) minmax(560px, 1.14fr);
+    grid-template-columns: minmax(520px, 0.9fr) minmax(720px, 1.1fr);
     align-items: center;
-    gap: clamp(42px, 5vw, 76px);
+    gap: clamp(58px, 5vw, 96px);
 }
 
 .welcome-message {
     width: auto;
-    max-width: 520px;
+    max-width: 680px;
     margin: 0;
 }
 
 .landing-kicker {
     display: inline-flex;
     align-items: center;
-    gap: 9px;
-    margin-bottom: 17px;
+    gap: 11px;
+    margin-bottom: 22px;
     color: #6c9eb5;
-    font: 800 10px/1 monospace;
+    font: 800 14px/1 monospace;
     letter-spacing: 0.16em;
 }
 
 .welcome-title {
-    margin: 0 0 17px;
+    margin: 0 0 22px;
     color: #f1f9ff;
-    font-size: clamp(34px, 3.2vw, 50px);
+    font-size: clamp(52px, 3.7vw, 72px);
     line-height: 1.17;
     font-weight: 780;
     letter-spacing: -0.055em;
@@ -306,10 +306,10 @@ body.cosight-app {
 }
 
 .welcome-subtitle {
-    max-width: 500px;
+    max-width: 640px;
     margin: 0;
     color: #7898ad;
-    font-size: 14px;
+    font-size: 20px;
     font-weight: 400;
     line-height: 1.75;
 }
@@ -317,21 +317,21 @@ body.cosight-app {
 .capability-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 22px;
+    gap: 10px;
+    margin-top: 30px;
 }
 
 .capability-list span {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    min-height: 31px;
-    padding: 0 11px;
+    gap: 9px;
+    min-height: 42px;
+    padding: 0 15px;
     border: 1px solid rgba(75, 132, 161, 0.18);
     border-radius: 8px;
     color: #7699ad;
     background: rgba(10, 29, 45, 0.62);
-    font-size: 10px;
+    font-size: 14px;
     font-weight: 600;
 }
 
@@ -340,8 +340,8 @@ body.cosight-app {
 }
 
 .agent-flow {
-    margin-top: 24px;
-    padding: 14px 15px;
+    margin-top: 30px;
+    padding: 19px 20px;
     border: 1px solid var(--landing-line);
     border-radius: 12px;
     background: rgba(8, 25, 40, 0.62);
@@ -351,9 +351,9 @@ body.cosight-app {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 13px;
+    margin-bottom: 17px;
     color: #52778f;
-    font: 700 8px/1 monospace;
+    font: 700 12px/1 monospace;
     letter-spacing: 0.12em;
 }
 
@@ -362,7 +362,7 @@ body.cosight-app {
     align-items: center;
     gap: 6px;
     color: #628b7c;
-    font-size: 8px;
+    font-size: 12px;
     letter-spacing: 0;
 }
 
@@ -372,20 +372,20 @@ body.cosight-app {
 }
 
 .agent-node {
-    flex: 0 0 54px;
+    flex: 0 0 78px;
     display: grid;
     justify-items: center;
-    gap: 7px;
+    gap: 9px;
     color: #587a91;
-    font-size: 8px;
+    font-size: 12px;
     white-space: nowrap;
 }
 
 .agent-node i {
     display: grid;
     place-items: center;
-    width: 28px;
-    height: 28px;
+    width: 38px;
+    height: 38px;
     border: 1px solid rgba(74, 127, 156, 0.24);
     border-radius: 50%;
     color: #6489a1;
@@ -401,12 +401,12 @@ body.cosight-app {
 .agent-connector {
     flex: 1;
     height: 1px;
-    margin-top: 14px;
+    margin-top: 19px;
     background: linear-gradient(90deg, rgba(48, 217, 255, 0.42), rgba(64, 111, 139, 0.18));
 }
 
 .landing-command-card {
-    padding: 19px;
+    padding: 26px 28px;
     border: 1px solid rgba(52, 144, 181, 0.25);
     border-radius: 17px;
     background: linear-gradient(145deg, rgba(10, 31, 49, 0.96), rgba(7, 23, 38, 0.97));
@@ -420,32 +420,32 @@ body.cosight-app {
     align-items: flex-start;
     justify-content: space-between;
     gap: 20px;
-    margin-bottom: 13px;
+    margin-bottom: 18px;
 }
 
 .command-label {
     color: #47748c;
-    font: 800 8px/1 monospace;
+    font: 800 11px/1 monospace;
     letter-spacing: 0.15em;
 }
 
 .command-card-header h3 {
-    margin: 5px 0 0;
+    margin: 7px 0 0;
     color: #dff2fc;
-    font-size: 15px;
+    font-size: 21px;
     font-weight: 670;
 }
 
 .command-ready {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    padding: 6px 8px;
+    gap: 8px;
+    padding: 8px 11px;
     border: 1px solid rgba(69, 226, 163, 0.17);
     border-radius: 999px;
     color: #65a98d;
     background: rgba(41, 152, 105, 0.06);
-    font-size: 8px;
+    font-size: 12px;
     white-space: nowrap;
 }
 
@@ -469,11 +469,11 @@ body.cosight-app {
 .initial-textarea {
     display: block;
     width: 100%;
-    min-height: 105px;
-    max-height: 180px;
-    padding: 15px 16px 8px;
+    min-height: 140px;
+    max-height: 220px;
+    padding: 20px 20px 12px;
     color: #dbeefa;
-    font-size: 13px;
+    font-size: 17px;
     line-height: 1.65;
 }
 
@@ -486,15 +486,15 @@ body.cosight-app {
     align-items: flex-end;
     justify-content: space-between;
     gap: 16px;
-    padding: 9px 10px 10px 15px;
+    padding: 12px 14px 14px 20px;
     border-top: 1px solid rgba(64, 119, 147, 0.14);
 }
 
 .composer-meta {
     display: grid;
-    gap: 5px;
+    gap: 7px;
     color: #47687d;
-    font-size: 8px;
+    font-size: 12px;
 }
 
 .composer-meta span {
@@ -513,7 +513,7 @@ body.cosight-app {
     border-radius: 4px;
     color: #6e92a8;
     background: rgba(19, 45, 62, 0.5);
-    font: 600 8px/1 monospace;
+    font: 600 11px/1 monospace;
 }
 
 .composer-actions {
@@ -524,7 +524,7 @@ body.cosight-app {
 
 .composer-count {
     color: #44667b;
-    font: 600 8px/1 monospace;
+    font: 600 11px/1 monospace;
 }
 
 .composer-count b {
@@ -533,20 +533,20 @@ body.cosight-app {
 }
 
 .initial-send-button {
-    min-width: 108px;
-    height: 36px;
+    min-width: 140px;
+    height: 46px;
     gap: 9px;
-    padding: 0 13px;
+    padding: 0 18px;
     border: 1px solid rgba(48, 217, 255, 0.48);
     border-radius: 8px;
     color: #02121c;
     background: linear-gradient(135deg, #55e4ff, #17bddf);
     box-shadow: 0 8px 22px rgba(18, 181, 216, 0.18);
-    font: 800 11px/1 "Segoe UI", "Microsoft YaHei", sans-serif;
+    font: 800 15px/1 "Segoe UI", "Microsoft YaHei", sans-serif;
 }
 
 .initial-send-button i {
-    font-size: 10px;
+    font-size: 13px;
 }
 
 .initial-send-button:hover:not(:disabled) {
@@ -562,39 +562,39 @@ body.cosight-app {
 }
 
 .prompt-section {
-    margin-top: 15px;
+    margin-top: 20px;
 }
 
 .prompt-section-title {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 9px;
+    margin-bottom: 12px;
     color: #7799ad;
-    font-size: 10px;
+    font-size: 14px;
     font-weight: 650;
 }
 
 .prompt-section-title small {
     color: #41647a;
-    font-size: 8px;
+    font-size: 12px;
     font-weight: 500;
 }
 
 .prompt-template-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
+    gap: 10px;
 }
 
 .prompt-template {
     min-width: 0;
-    min-height: 57px;
+    min-height: 76px;
     display: grid;
-    grid-template-columns: 31px minmax(0, 1fr) auto;
+    grid-template-columns: 42px minmax(0, 1fr) auto;
     align-items: center;
-    gap: 9px;
-    padding: 7px 9px;
+    gap: 12px;
+    padding: 10px 13px;
     border: 1px solid rgba(65, 120, 149, 0.17);
     border-radius: 9px;
     color: #98b5c6;
@@ -613,16 +613,16 @@ body.cosight-app {
 
 .prompt-template > i {
     color: #456d83;
-    font-size: 8px;
+    font-size: 11px;
 }
 
 .prompt-icon {
     display: grid;
     place-items: center;
-    width: 31px;
-    height: 31px;
+    width: 42px;
+    height: 42px;
     border-radius: 8px;
-    font-size: 11px;
+    font-size: 15px;
 }
 
 .prompt-icon.critical {
@@ -648,7 +648,7 @@ body.cosight-app {
 .prompt-copy {
     min-width: 0;
     display: grid;
-    gap: 3px;
+    gap: 4px;
 }
 
 .prompt-copy strong,
@@ -660,13 +660,13 @@ body.cosight-app {
 
 .prompt-copy strong {
     color: inherit;
-    font-size: 10px;
+    font-size: 14px;
     font-weight: 680;
 }
 
 .prompt-copy small {
     color: #4d7085;
-    font-size: 8px;
+    font-size: 11px;
 }
 
 .command-card-footer {
@@ -674,11 +674,11 @@ body.cosight-app {
     align-items: center;
     justify-content: space-between;
     gap: 14px;
-    margin-top: 12px;
-    padding-top: 10px;
+    margin-top: 16px;
+    padding-top: 13px;
     border-top: 1px solid rgba(66, 115, 141, 0.12);
     color: #456b80;
-    font-size: 8px;
+    font-size: 12px;
 }
 
 .command-card-footer span,

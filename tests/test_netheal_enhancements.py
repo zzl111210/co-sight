@@ -183,6 +183,9 @@ class SecurityConfigurationTests(unittest.TestCase):
                 "API_KEY": secret,
                 "API_BASE_URL": "https://provider.example/v1",
                 "MODEL_NAME": "unit-model",
+                "TAVILY_API_KEY": "unit-test-tavily-token",
+                "GOOGLE_API_KEY": "unused-google-token",
+                "SEARCH_ENGINE_ID": "unused-google-engine",
             },
             clear=False,
         ):
@@ -190,6 +193,10 @@ class SecurityConfigurationTests(unittest.TestCase):
 
         self.assertTrue(status["llm"]["configured"])
         self.assertTrue(status["llm"]["api_key_present"])
+        self.assertEqual(
+            status["optional_tools"], {"tavily_configured": True}
+        )
+        self.assertNotIn("google", json.dumps(status).lower())
         self.assertNotIn(secret, json.dumps(status, ensure_ascii=False))
         self.assertFalse(status["security"]["real_network_write_enabled"])
 

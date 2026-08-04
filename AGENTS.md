@@ -33,7 +33,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\run_netheal_acceptance.ps1
 git diff --check
 ```
 
-Expected baseline at this handoff: 23 automated tests pass and NetHeal acceptance reports 6/6 cases passed. For the dev1 migration details, read [`docs/netheal/DEV1_MIGRATION.md`](docs/netheal/DEV1_MIGRATION.md).
+Expected baseline at this handoff: 28 automated tests pass and NetHeal acceptance reports 6/6 cases passed. For the dev1 migration details, read [`docs/netheal/DEV1_MIGRATION.md`](docs/netheal/DEV1_MIGRATION.md).
 
 ## Common entry points
 

@@ -247,14 +247,16 @@ Windows 推荐：
 .\.venv\Scripts\python.exe -m app.netheal.acceptance_runner
 node --check cosight_server/web/js/netheal.js
 node --check cosight_server/web/js/netheal-settings.js
+node --check cosight_server/web/js/dag.js
+node --check cosight_server/web/js/workspace.js
 git diff --check
 ```
 
 当前结果：
 
-- 23/23 自动测试通过；
+- 28/28 自动测试通过；
 - 6/6 验收用例通过；
-- 两个前端脚本语法检查通过；
+- 四个前端脚本语法检查通过；
 - 大屏、设置页、脚本和配置 API 的进程内 HTTP 检查均为 200；
 - PowerShell 脚本、HTML 和 Compose YAML 静态解析通过；
 - 当前开发机未安装 Docker，镜像尚未在本机实跑。

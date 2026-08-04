@@ -83,7 +83,5 @@ def create_actor_template(template_name, work_space_path):
 
 def load_search_skill(template_content):
     import os
-    if os.environ.get("GOOGLE_API_KEY", "") and os.environ.get("SEARCH_ENGINE_ID", ""):
-        template_content['skills'].extend([search_google_skill()])
     if os.environ.get("TAVILY_API_KEY", ""):
         template_content['skills'].extend([tavily_search_skill(), search_image_skill()])

@@ -46,8 +46,7 @@
     const llm = status.llm || {};
     const tools = status.optional_tools || {};
     const security = status.security || {};
-    const configuredTools = [tools.tavily_configured, tools.google_search_configured]
-      .filter(Boolean).length;
+    const configuredTools = tools.tavily_configured ? 1 : 0;
 
     setText("auth-mode", security.auth_mode || "--");
     setText("auth-mode-detail", security.auth_mode || "--");
@@ -60,7 +59,6 @@
     setText("model-key-state", llm.api_key_present ? "已配置（内容隐藏）" : "未配置");
     setText("token-secret-state", security.token_secret_configured ? "已配置（内容隐藏）" : "开发模式临时密钥");
     setText("tavily-state", tools.tavily_configured ? "已配置" : "未配置");
-    setText("google-state", tools.google_search_configured ? "已配置" : "未配置");
 
     setBadge("llm-badge", llm.configured ? "已就绪" : "待配置", llm.configured ? "success" : "warning");
     setBadge(
@@ -68,7 +66,7 @@
       security.auth_mode === "production" ? "生产模式" : "开发模式",
       security.auth_mode === "production" ? "success" : "warning"
     );
-    setBadge("tools-badge", configuredTools + "/2 已配置", configuredTools ? "success" : "warning");
+    setBadge("tools-badge", configuredTools + "/1 已配置", configuredTools ? "success" : "warning");
   }
 
   async function loadStatus(showToast = false) {

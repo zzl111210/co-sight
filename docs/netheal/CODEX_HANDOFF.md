@@ -14,7 +14,7 @@
 - 系统增强提交：`5e8ea45 feat: productionize NetHeal operations cockpit`
 - dev1 迁移最新提交：`4211dd4 feat(netheal): add secure settings and deployment kit`
 - `main` 保持在初始提交 `dc00dae`，没有被本项目修改。
-- 自动测试基线：23 项通过。
+- 自动测试基线：28 项通过。
 - 可执行性验收基线：TC-01、TC-02、TC-03、TC-06 业务闭环与 TC-04、TC-05 安全检查，6/6 通过。
 - 所有网络变更命令均为仿真输出，`dry_run=true`，不会连接或修改真实网元。
 
@@ -188,7 +188,7 @@ sequenceDiagram
 | `tests/test_netheal.py` | 工具、场景、报告、准确率 | 工具和数据契约变化 |
 | `tests/test_netheal_service.py` | 状态机、持久化、API、权限 | 服务/API 变化 |
 | `tests/test_netheal_robustness.py` | 鲁棒性评估断言 | 评估策略变化 |
-| `tests/test_netheal_acceptance.py` | 5 项验收总开关 | 验收用例变化 |
+| `tests/test_netheal_acceptance.py` | 6 项验收总开关 | 验收用例变化 |
 
 ## 7. 场景数据契约
 
@@ -378,9 +378,10 @@ API_BASE_URL
 MODEL_NAME
 MAX_TOKENS
 TEMPERATURE
+TAVILY_API_KEY
 ```
 
-如果需要给队友示例，只改 `.env_template`，并使用占位符。
+外部网页检索统一使用 Tavily，不再要求或展示 Google Search API 配置。若需要给队友示例，只改 `.env_template`，并使用占位符。
 
 ### 13.2 启动服务
 
@@ -398,7 +399,7 @@ TEMPERATURE
 ### 13.3 驾驶舱验收
 
 1. 右上角保持“变更审批人”；
-2. 选择 TC-01、TC-02 或 TC-03；
+2. 选择 TC-01、TC-02、TC-03 或 TC-06；
 3. 点击“运行闭环测试”；
 4. 查看根因、根网元、影响路径、证据、修复方案、KPI 和生命周期；
 5. 出现“闭环测试通过”且状态为 `closed` 即成功；
@@ -420,7 +421,7 @@ TEMPERATURE
 powershell -ExecutionPolicy Bypass -File .\scripts\run_netheal_acceptance.ps1
 ```
 
-预期：TC-01～TC-05 全部 `[PASS]`，结果为 `5/5`。
+预期：TC-01、TC-02、TC-03、TC-06 业务闭环与 TC-04、TC-05 安全检查全部 `[PASS]`，结果为 `6/6`。
 
 只跑一个场景：
 
@@ -434,7 +435,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\run_netheal_acceptance.ps1 -S
 .\.venv\Scripts\python.exe -m unittest discover -s tests -q
 ```
 
-当前预期：12 项通过。运行中可能出现 Co-Sight 原有的 Pydantic 弃用警告，不影响测试结论，但后续升级 Pydantic 3 前需要处理。
+当前预期：28 项通过。运行中可能出现 Co-Sight 原有的 Pydantic 弃用警告，不影响测试结论，但后续升级 Pydantic 3 前需要处理。
 
 ### 14.3 单场景确定性运行
 
@@ -468,16 +469,20 @@ powershell -ExecutionPolicy Bypass -File .\scripts\run_netheal_acceptance.ps1 -S
 
 ```powershell
 node --check cosight_server\web\js\netheal.js
+node --check cosight_server\web\js\netheal-settings.js
+node --check cosight_server\web\js\dag.js
+node --check cosight_server\web\js\workspace.js
 git diff --check
 ```
 
-## 15. 当前五项验收用例
+## 15. 当前六项验收用例
 
 | 编号 | 内容 | 核心预期 |
 |---|---|---|
 | TC-01 | UPF 过载导致视频业务高时延 | `UPF_OVERLOAD` / `UPF-01` / 恢复通过 |
 | TC-02 | 回传链路中断导致小区掉线 | `BACKHAUL_LINK_DOWN` / `LINK-03` / 恢复通过 |
 | TC-03 | URLLC 切片资源不足 | `SLICE_CAPACITY_SHORTAGE` / `slice-urllc` / 恢复通过 |
+| TC-06 | UPF 过载与传输抖动复合告警风暴 | `COMPOSITE_UPF_OVERLOAD_AND_TRANSMISSION_JITTER` / 联合修复通过 |
 | TC-04 | viewer 越权重置 | 权限拒绝并审计 |
 | TC-05 | 已闭环事件重复验证 | 状态机拒绝非法跳转 |
 
@@ -567,7 +572,7 @@ ChangeExecutor
 9. **移动端不是主演示目标**：桌面 NOC 一页式布局优先，移动端需要单独体验优化。
 10. **场景 API 暴露 ground truth**：便于验收；生产部署应区分测试目录和生产目录。
 11. **日志可能出现 Windows 文件占用警告**：通常是多个服务进程同时写日志，启动前确认只有一个实例。
-12. **Pydantic 有弃用警告**：来自原 Co-Sight 代码，当前不影响 12 项测试。
+12. **Pydantic 有弃用警告**：来自原 Co-Sight 代码，当前不影响 28 项测试。
 13. **`.gitignore` 忽略 `scripts/*`**：现有验收脚本已被强制跟踪；新增脚本时必须检查是否被忽略。
 
 ## 19. 后续优化优先级
@@ -606,7 +611,7 @@ ChangeExecutor
 2. 执行 `git branch --show-current`，确认在 `dev`。
 3. 执行 `git status --short`，先识别并保护队友未提交改动。
 4. 执行 `git fetch origin dev`，检查远程是否有新提交。
-5. 运行 12 项测试和 5 项验收，建立修改前基线。
+5. 运行 28 项测试和 6 项验收，建立修改前基线。
 6. 根据“代码地图”和“常见修改任务”只进入相关文件。
 7. 修改后至少运行相关测试、完整验收、前端语法和 `git diff --check`。
 8. 检查 `.env`、`work_space/**`、数据库和日志没有进入提交。
@@ -634,7 +639,7 @@ ChangeExecutor
 3. 解释四路并行证据如何汇总成根因；
 4. 说明为什么 TC-02 的根网元是 `LINK-03` 而不是 `gNodeB-03`；
 5. 说明审批、dry-run、验证和回溯的安全意义；
-6. 用一条命令得到 5/5 验收；
+6. 用一条命令得到 6/6 验收；
 7. 能指出新增场景至少需要改哪些数据文件和测试；
 8. 知道哪些目录和敏感信息绝对不能提交。
 

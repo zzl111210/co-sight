@@ -40,10 +40,6 @@ def model_config_status() -> dict[str, Any]:
         },
         "optional_tools": {
             "tavily_configured": _configured_secret("TAVILY_API_KEY"),
-            "google_search_configured": bool(
-                _configured_secret("GOOGLE_API_KEY")
-                and os.getenv("SEARCH_ENGINE_ID", "").strip()
-            ),
         },
         "security": {
             "auth_mode": auth_mode(),

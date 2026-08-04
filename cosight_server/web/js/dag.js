@@ -2,7 +2,7 @@
 // 包含DAG图的初始化、布局计算、节点绘制、拖拽、响应式处理等功能
 
 // DAG图全局变量
-let svg, width, height, simulation;
+let svg, width, height, simulation, mainGroup;
 let tooltip = null; // 延迟初始化，等待DOM加载
 let zoom = null; // 缩放功能
 
@@ -100,10 +100,10 @@ function calculateHierarchicalLayout() {
     const totalLevels = levels.length;
 
     // 动态计算间距参数
-    const minNodeSpacing = 80;  // 最小节点间距
-    const minLevelWidth = 150;  // 最小层级间距
-    const padding = 50;         // 上下边距
-    const horizontalPadding = 200; // 左右边距
+    const minNodeSpacing = 92;  // 放大字号后保留更充足的垂直间距
+    const minLevelWidth = 125;  // 宽屏分栏下避免节点挤压和连线重叠
+    const padding = 58;         // 上下边距
+    const horizontalPadding = 72; // 左右边距
 
     // 根据容器大小和节点数量动态调整垂直间距
     const availableHeight = height - (2 * padding);
@@ -120,8 +120,8 @@ function calculateHierarchicalLayout() {
     );
 
     // 分屏模式下的额外调整
-    const levelWidth = isHalfScreen ? dynamicLevelWidth * 0.6 : dynamicLevelWidth;
-    const nodeSpacing = isHalfScreen ? dynamicNodeSpacing * 1.2 : dynamicNodeSpacing;
+    const levelWidth = isHalfScreen ? dynamicLevelWidth * 0.82 : dynamicLevelWidth;
+    const nodeSpacing = isHalfScreen ? dynamicNodeSpacing : dynamicNodeSpacing;
 
     // 计算总宽度和起始位置，使整个DAG居中
     const totalWidth = (levels.length - 1) * levelWidth;
@@ -188,16 +188,16 @@ function initDAG() {
         .force("link", d3.forceLink(dagData.edges).id(d => d.id).distance(150))
         .force("charge", d3.forceManyBody().strength(0)) // 关闭排斥力
         .force("center", d3.forceCenter(width / 2, height / 2))
-        .force("collision", d3.forceCollide().radius(40));
+        .force("collision", d3.forceCollide().radius(48));
 
     // 创建主图形组，用于缩放和平移
-    const mainGroup = svg.append("g");
+    mainGroup = svg.append("g");
 
     // 定义箭头标记
     svg.append("defs").append("marker")
         .attr("id", "arrowhead")
         .attr("viewBox", "0 -5 10 10")
-        .attr("refX", 35) // 调整箭头位置，避免与节点重叠
+        .attr("refX", 40) // 节点放大后让箭头停在圆周外
         .attr("refY", 0)
         .attr("markerWidth", 6)
         .attr("markerHeight", 6)
@@ -228,7 +228,7 @@ function initDAG() {
     // 添加节点圆圈
     node.append("circle")
         .attr("class", d => `node-circle ${d.status}`)
-        .attr("r", 25)
+        .attr("r", 29)
         .on("mouseenter", function (event, d) {
             // 阻止事件冒泡，避免与拖拽冲突
             event.stopPropagation();
@@ -274,9 +274,9 @@ function initDAG() {
     node.append("text")
         .attr("class", "status-icon")
         .attr("x", 0)
-        .attr("y", 35)
+        .attr("y", 42)
         .attr("text-anchor", "middle")
-        .attr("font-size", "12px")
+        .attr("font-size", "13px")
         .attr("fill", "#666")
         .text(d => getStatusIcon(d.status));
 
@@ -310,6 +310,7 @@ function initDAG() {
     dagData.nodes.forEach(node => credibilityService.addNodeIndicators(node.id));
 
     updateProgress();
+    requestAnimationFrame(() => fitToScreen());
 }
 
 // 显示步骤详情
@@ -497,8 +498,53 @@ function handleResize() {
     simulation.force("center", d3.forceCenter(width / 2, height / 2));
     simulation.alpha(0.5).restart();
 
+    window.clearTimeout(handleResize._fitTimer);
+    handleResize._fitTimer = window.setTimeout(() => fitToScreen(), 340);
+
     // 更新所有面板位置
     updateAllPanelPositions();
+}
+
+// 将完整 DAG 自动缩放并居中到当前可用画布。
+function fitToScreen() {
+    if (!svg || !zoom || !mainGroup || !mainGroup.node()) return;
+
+    const svgNode = document.getElementById("dag-svg");
+    if (!svgNode) return;
+
+    width = svgNode.clientWidth;
+    height = svgNode.clientHeight;
+    if (width <= 0 || height <= 0) return;
+
+    let bounds;
+    try {
+        bounds = mainGroup.node().getBBox();
+    } catch (_) {
+        return;
+    }
+    if (!bounds || bounds.width <= 0 || bounds.height <= 0) return;
+
+    const padding = Math.max(42, Math.min(width, height) * 0.08);
+    const scale = Math.max(
+        0.2,
+        Math.min(
+            1.25,
+            (width - padding * 2) / bounds.width,
+            (height - padding * 2) / bounds.height
+        )
+    );
+    const translateX = (width - bounds.width * scale) / 2 - bounds.x * scale;
+    const translateY = (height - bounds.height * scale) / 2 - bounds.y * scale;
+    const transform = d3.zoomIdentity
+        .translate(translateX, translateY)
+        .scale(scale);
+
+    svg.transition().duration(360).call(zoom.transform, transform);
+}
+
+function resetZoom() {
+    if (!svg || !zoom) return;
+    svg.transition().duration(260).call(zoom.transform, d3.zoomIdentity);
 }
 
 // 添加节点指示器
@@ -551,6 +597,7 @@ function createDag(messageData) {
         console.log('9. initData?.step_notes 存在:', !!initData?.step_notes);
         console.log('10. initData?.step_notes:', initData?.step_notes);
         console.log('11. initData?.steps:', initData?.steps);
+
         console.log('12. initData?.step_statuses:', initData?.step_statuses);
         console.log('============================================');
         
@@ -765,6 +812,8 @@ if (typeof module !== 'undefined' && module.exports) {
         updateProgress,
         updateNodeStatus,
         handleResize,
+        fitToScreen,
+        resetZoom,
         addNodeIndicator,
         updateProgressFromData
     };
