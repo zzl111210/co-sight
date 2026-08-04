@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import os
 import time
 
 from app.cosight.tool.deep_search.common.utils import extract_and_clean_tags, parse_content_properties
@@ -121,12 +122,12 @@ if __name__ == '__main__':
     
     model_info = {
         "base_url": "https://api.deepseek.com/",
-        "api_key": "sk-425469d1f43543cc87ab12ebf8c8e081",
+        "api_key": os.getenv("API_KEY", ""),
         "model_name": "deepseek-chat",
 
     }
     web_search_info = {
-        "api_key": "tvly-dev-123"
+        "api_key": os.getenv("TAVILY_API_KEY", "")
     }
     deep_search_toolkit = DeepSearchToolkit(model_info, web_search_info)
     result = asyncio.run(deep_search_toolkit.deep_search("介绍哪吒2"))

@@ -48,9 +48,7 @@ env_vars_to_check = [
     "TEMPERATURE",
     "PROXY",
     # 可选配置检查
-    "TAVILY_API_KEY",
-    "GOOGLE_API_KEY",
-    "SEARCH_ENGINE_ID"
+    "TAVILY_API_KEY"
 ]
 
 # 可选的模型配置组
@@ -71,7 +69,7 @@ for var in env_vars_to_check:
         else:
             logger.info(f"✓ {var} = {value}")
     else:
-        if var in ["PROXY", "TAVILY_API_KEY", "GOOGLE_API_KEY", "SEARCH_ENGINE_ID"]:
+        if var in ["PROXY", "TAVILY_API_KEY"]:
             logger.info(f"ℹ {var} 未设置 (可选)")
         else:
             logger.info(f"✗ {var} 未设置")

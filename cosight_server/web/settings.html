@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#06111f">
+  <title>NetHeal Agent · 系统设置</title>
+  <link rel="icon" href="./favicon.ico">
+  <link rel="stylesheet" href="./libs/fontawesome-6.7.2/css/all.min.css">
+  <link rel="stylesheet" href="./styles/netheal.css">
+  <link rel="stylesheet" href="./styles/netheal-settings.css">
+</head>
+<body class="settings-page">
+  <div class="ambient-grid" aria-hidden="true"></div>
+  <header class="topbar">
+    <a class="brand" href="./netheal.html" aria-label="返回 NetHeal 运维中心">
+      <span class="brand-mark"><i class="fa-solid fa-wave-square"></i></span>
+      <span><strong>NETHEAL <em>AGENT</em></strong><small>SECURE OPERATIONS SETTINGS</small></span>
+    </a>
+    <div class="site-identity"><span class="eyebrow">配置域</span><strong><i class="fa-solid fa-shield-halved"></i> CAMPUS-5G / 仿真环境</strong></div>
+    <div class="top-actions">
+      <div class="live-state"><span class="pulse"></span><span id="service-state">状态检查中</span></div>
+      <span class="clock" id="system-clock">--:--:--</span>
+      <a class="ghost-button" href="./netheal.html"><i class="fa-solid fa-arrow-left"></i><span>返回运维中心</span></a>
+    </div>
+  </header>
+
+  <main class="settings-shell">
+    <section class="settings-hero">
+      <div><p class="eyebrow">READ-ONLY CONFIGURATION CONSOLE</p><h1>系统配置与运行保障</h1><p>集中查看模型、鉴权、外部工具与安全边界。页面不会接收、展示或写入任何 API 密钥。</p></div>
+      <div class="hero-actions">
+        <button class="ghost-button" id="refresh-status" type="button"><i class="fa-solid fa-rotate"></i><span>刷新状态</span></button>
+        <button class="primary-action" id="check-llm" type="button"><i class="fa-solid fa-plug-circle-check"></i><span>测试模型连接</span></button>
+      </div>
+    </section>
+
+    <section class="readiness-strip" aria-label="系统就绪度">
+      <div><span>运行模式</span><strong id="auth-mode">--</strong></div>
+      <div><span>模型服务</span><strong id="llm-readiness">--</strong></div>
+      <div><span>工具配置</span><strong id="tool-readiness">--</strong></div>
+      <div><span>真实网元写入</span><strong id="network-write">禁用</strong></div>
+    </section>
+
+    <section class="settings-grid">
+      <article class="settings-card">
+        <div class="card-heading"><span class="card-icon cyan"><i class="fa-solid fa-brain"></i></span><div><p class="eyebrow">MODEL PROVIDER</p><h2>大模型服务</h2></div><span class="status-badge" id="llm-badge">检查中</span></div>
+        <dl class="config-list">
+          <div><dt>模型名称</dt><dd id="model-name">--</dd></div>
+          <div><dt>兼容端点</dt><dd id="model-endpoint">--</dd></div>
+          <div><dt>请求超时</dt><dd id="model-timeout">--</dd></div>
+          <div><dt>访问密钥</dt><dd id="model-key-state">仅显示配置状态</dd></div>
+        </dl>
+        <div class="connection-result" id="connection-result">点击“测试模型连接”后显示提供商状态与响应延迟。</div>
+      </article>
+
+      <article class="settings-card">
+        <div class="card-heading"><span class="card-icon violet"><i class="fa-solid fa-user-lock"></i></span><div><p class="eyebrow">IDENTITY & ACCESS</p><h2>鉴权与权限</h2></div><span class="status-badge" id="auth-badge">检查中</span></div>
+        <dl class="config-list">
+          <div><dt>鉴权模式</dt><dd id="auth-mode-detail">--</dd></div>
+          <div><dt>令牌签名密钥</dt><dd id="token-secret-state">--</dd></div>
+          <div><dt>角色模型</dt><dd>viewer / operator / approver / admin</dd></div>
+          <div><dt>审批机制</dt><dd>高风险动作必须人工审批</dd></div>
+        </dl>
+        <p class="card-note"><i class="fa-solid fa-circle-info"></i> 生产模式关闭本地登录，并强制所有写操作携带有时效的 Bearer Token。</p>
+      </article>
+
+      <article class="settings-card">
+        <div class="card-heading"><span class="card-icon amber"><i class="fa-solid fa-screwdriver-wrench"></i></span><div><p class="eyebrow">OPTIONAL TOOLS</p><h2>外部工具能力</h2></div><span class="status-badge" id="tools-badge">检查中</span></div>
+        <div class="tool-status-list">
+          <div><span><i class="fa-solid fa-magnifying-glass"></i> Tavily 检索</span><strong id="tavily-state">--</strong></div>
+          <div><span><i class="fa-solid fa-database"></i> 本地故障知识库</span><strong class="ok-text">已启用</strong></div>
+          <div><span><i class="fa-solid fa-diagram-project"></i> 拓扑推理引擎</span><strong class="ok-text">已启用</strong></div>
+        </div>
+      </article>
+
+      <article class="settings-card guardrail-card">
+        <div class="card-heading"><span class="card-icon green"><i class="fa-solid fa-shield"></i></span><div><p class="eyebrow">OPERATION GUARDRAILS</p><h2>投产安全边界</h2></div><span class="status-badge success">安全</span></div>
+        <ul class="guardrail-list">
+          <li><i class="fa-solid fa-check"></i><span>所有配置命令仅在仿真执行器中运行，默认 dry-run。</span></li>
+          <li><i class="fa-solid fa-check"></i><span>事件状态机阻止跳过诊断、审批或恢复验证。</span></li>
+          <li><i class="fa-solid fa-check"></i><span>报告下载经过角色校验、路径约束和访问审计。</span></li>
+          <li><i class="fa-solid fa-check"></i><span>配置状态接口永不返回 API Key 或令牌签名密钥。</span></li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="setup-guide">
+      <div><p class="eyebrow">LOCAL CONFIGURATION</p><h2>如何修改配置</h2></div>
+      <ol>
+        <li><span>01</span><p>复制 <code>.env_template</code> 为被 Git 忽略的 <code>.env</code>。</p></li>
+        <li><span>02</span><p>在本机编辑模型端点、模型名和密钥，不要提交或通过网页传输密钥。</p></li>
+        <li><span>03</span><p>重启服务后刷新本页，再执行模型连通性检查。</p></li>
+      </ol>
+    </section>
+  </main>
+  <div class="settings-toast" id="settings-toast" role="status" aria-live="polite"></div>
+  <script src="./js/netheal-settings.js"></script>
+</body>
+</html>

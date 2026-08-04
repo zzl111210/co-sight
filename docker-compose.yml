@@ -1,0 +1,33 @@
+services:
+  netheal:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: netheal-agent:local
+    container_name: netheal-agent
+    init: true
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      ENVIRONMENT: production
+      NETHEAL_AUTH_MODE: production
+    ports:
+      - "7788:7788"
+    volumes:
+      - ./work_space:/opt/cosight/work_space
+      - ./logs:/opt/cosight/logs
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:7788/api/netheal/v1/health', timeout=3)"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s

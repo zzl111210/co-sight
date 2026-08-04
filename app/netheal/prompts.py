@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from app.netheal.scenario_context import resolve_scenario_context
+
 
 NETHEAL_KEYWORDS = (
     "netheal",
@@ -11,8 +13,13 @@ NETHEAL_KEYWORDS = (
     "5g专网",
     "5g 专网",
     "upf",
+    "gnodeb",
+    "小区掉线",
+    "基站掉线",
     "回传链路",
     "网络切片",
+    "urllc",
+    "告警风暴",
 )
 
 
@@ -24,9 +31,12 @@ def is_netheal_request(question: str) -> bool:
 def build_netheal_planning_guidance(question: str) -> str:
     if not is_netheal_request(question):
         return ""
-    return """
+    context = resolve_scenario_context(question)
+    return f"""
 
 # NetHeal-Agent 场景规划约束
+本次任务唯一场景ID：{context['scenario_id']}；预期根因编码：{context['root_cause']}；根网元：{context['root_resource']}。
+所有 NetHeal 工具调用必须携带或遵循该场景上下文，禁止在同一任务中切换到其他测试场景。
 这是5G专网智能运维任务。使用 create_plan 创建以下8个步骤，并保留方括号中的专业智能体角色：
 1. [告警解析智能体] 读取并关联压缩告警
 2. [根因定位智能体] 查询故障期KPI与阈值违例
@@ -46,10 +56,13 @@ def build_netheal_planning_guidance(question: str) -> str:
 def build_netheal_actor_guidance(question: str, current_step: str) -> str:
     if not is_netheal_request(question):
         return ""
+    context = resolve_scenario_context(question)
     return f"""
 
 # NetHeal-Agent 当前专业角色约束
 当前步骤：{current_step}
+- 场景锁定：scenario_id={context['scenario_id']}，root_cause={context['root_cause']}，root_resource={context['root_resource']}。
+- 每个工具的参数和输出都必须与上述场景一致；发现历史默认值或其他场景时，以当前任务场景为准。
 - 只使用 NetHeal 专用工具返回的结构化证据，不使用互联网搜索，不编造网管数据。
 - 告警步骤调用 read_alarm_events；KPI步骤调用 query_kpi_metrics；拓扑步骤调用 query_network_topology；
   知识步骤调用 retrieve_fault_knowledge；根因步骤调用 diagnose_root_cause。

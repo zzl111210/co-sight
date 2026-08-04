@@ -35,6 +35,18 @@
       "affected_service": "industrial-control",
       "manual_reference_minutes": 12,
       "expected": {"latency_ms_max": 20, "packet_loss_pct_max": 0.5}
+    },
+    {
+      "id": "alarm-storm-composite",
+      "test_case_id": "TC-06",
+      "title": "告警风暴叠加UPF过载与传输抖动复合故障",
+      "description": "验证多源告警压缩、复合根因解耦、并行修复编排及多业务恢复",
+      "site_id": "campus-5g",
+      "ground_truth": "COMPOSITE_UPF_OVERLOAD_AND_TRANSMISSION_JITTER",
+      "root_resource": "UPF-01",
+      "affected_service": "slice-video",
+      "manual_reference_minutes": 25,
+      "expected": {"latency_ms_max": 30, "packet_loss_pct_max": 0.5, "throughput_mbps_min": 800}
     }
   ]
 }

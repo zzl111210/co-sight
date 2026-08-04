@@ -64,10 +64,8 @@ pip install -r requirements.txt
 1. **拷贝模板`.env_template`并生成 `.env`**（该文件已被加入 `.gitignore`，可安全存储私密信息）：
 2. **编辑** `.env` **配置核心参数**：
 	1. 大模型配置：配置相对应的大模型地址，模型名称，API-KEY等，可进一步（可选）对规划、执行、工具、多模态模型做配置；
-	2. 搜索引擎配置（可选）：配置相关搜索引擎的API-KEY；
-		1. Google Search 申请方式：https://developers.google.com/custom-search/v1/overview?hl=zh-cn#api_key
-		   ![](assets/Pasted_image_20250916105315.png)	
-		2. Tavily Search 申请方式：https://app.tavily.com/home
+	2. 搜索引擎配置（可选）：配置 Tavily Search API Key；
+		1. Tavily Search 申请方式：https://app.tavily.com/home
 		   ![](assets/Pasted_image_20250502115315.png)
 
 ## ▶️ 快速启动

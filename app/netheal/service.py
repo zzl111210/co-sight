@@ -7,7 +7,7 @@ import threading
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from app.netheal.domain import (
     Incident,
@@ -17,6 +17,7 @@ from app.netheal.domain import (
 )
 from app.netheal.network_toolkit import NetworkToolkit
 from app.netheal.store import NetHealStore
+from app.netheal.streaming import publish_status_change
 
 
 class NetHealService:
@@ -185,7 +186,8 @@ class NetHealService:
         message: str,
         payload: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        ensure_transition(incident["status"], target.value)
+        previous_status = incident["status"]
+        ensure_transition(previous_status, target.value)
         incident["status"] = target.value
         incident["updated_at"] = self._now()
         incident["version"] = int(incident.get("version", 1)) + 1
@@ -195,6 +197,13 @@ class NetHealService:
             **(payload or {}),
         })
         return incident
+        publish_status_change(
+            incident_id=incident["id"],
+            old_status=previous_status,
+            new_status=target.value,
+            actor=actor,
+            message=message,
+        )
 
     def create_incident(
         self,
@@ -209,6 +218,7 @@ class NetHealService:
             "upf-overload": "critical",
             "backhaul-link-down": "critical",
             "slice-capacity-shortage": "major",
+            "alarm-storm-composite": "critical",
         }.get(scenario_id, "major")
         incident = Incident(
             id=self._incident_id(),
@@ -491,12 +501,24 @@ class NetHealService:
         scenario_id: str = "upf-overload",
         actor: str = "demo-director",
         role: str = "approver",
+        progress_callback: Callable[[int, int, str, str], None] | None = None,
     ) -> dict[str, Any]:
+        def progress(stage: int, label: str, message: str) -> None:
+            if progress_callback:
+                progress_callback(stage, 6, label, message)
+
         self._authorize(None, actor, role, "approve")
+        progress(0, "任务受理", "已校验操作者权限和场景参数")
+        progress(1, "多源诊断", "关联告警、KPI、拓扑和知识库证据")
         incident = self.diagnose(scenario_id, actor=actor, role=role)["incident"]
+        progress(2, "风险审批", "根因已定位，进入仿真变更审批")
         self.approve(incident["id"], actor, role, "比赛演示：批准仿真修复")
+        progress(3, "仿真执行", "执行 dry-run 配置命令并生成工单")
         self.execute(incident["id"], actor, role)
-        return self.verify(incident["id"], actor, role)
+        progress(4, "恢复验证", "检查修复后 KPI 与业务 SLA")
+        result = self.verify(incident["id"], actor, role)
+        progress(5, "闭环完成", "已生成报告并完成全链路审计")
+        return result
 
     def _require_incident(self, incident_id: str) -> dict[str, Any]:
         incident = self.store.get_incident(incident_id)

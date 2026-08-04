@@ -78,18 +78,18 @@ class I18nService {
     updatePageLanguage() {
         // 更新页面标题
         const titleElement = document.querySelector('h1');
-        if (titleElement) {
+        if (titleElement && !titleElement.closest('.app-header')) {
             titleElement.innerHTML = `<i class="fas fa-robot"></i> ${this.t('app_title')}`;
         }
 
         // 更新欢迎信息
         const welcomeTitle = document.querySelector('.welcome-title');
-        if (welcomeTitle) {
+        if (welcomeTitle && !welcomeTitle.closest('.landing-content')) {
             welcomeTitle.textContent = this.t('welcome_title');
         }
 
         const welcomeSubtitle = document.querySelector('.welcome-subtitle');
-        if (welcomeSubtitle) {
+        if (welcomeSubtitle && !welcomeSubtitle.closest('.landing-content')) {
             welcomeSubtitle.textContent = this.t('welcome_subtitle');
         }
 

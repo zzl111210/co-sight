@@ -43,9 +43,9 @@ def netheal_skills() -> list[dict]:
         "type": "object",
         "properties": {
             "site_id": _property("5G private-network site ID", "5G专网站点ID", default="campus-5g"),
-            "scenario_id": _property("Fault scenario ID", "故障场景ID", default="upf-overload"),
+            "scenario_id": _property("Required fault scenario ID: upf-overload, backhaul-link-down, slice-capacity-shortage, or alarm-storm-composite", "必填故障场景ID：upf-overload、backhaul-link-down、slice-capacity-shortage 或 alarm-storm-composite"),
         },
-        "required": [],
+        "required": ["scenario_id"],
     }
     return [
         _skill(
@@ -60,7 +60,7 @@ def netheal_skills() -> list[dict]:
                     **site_and_scenario["properties"],
                     "severity": _property("Optional severity filter", "可选告警级别过滤"),
                 },
-                "required": [],
+                "required": ["scenario_id"],
             },
         ),
         _skill(
@@ -76,7 +76,7 @@ def netheal_skills() -> list[dict]:
                     "phase": _property("baseline, incident, post_repair, or all", "基线、故障、修复后或全部阶段", default="incident"),
                     "resource_id": _property("Optional resource filter", "可选网元过滤"),
                 },
-                "required": [],
+                "required": ["scenario_id"],
             },
         ),
         _skill(
@@ -89,9 +89,9 @@ def netheal_skills() -> list[dict]:
                 "type": "object",
                 "properties": {
                     "site_id": site_and_scenario["properties"]["site_id"],
-                    "resource_id": _property("Focus network resource", "关注网元", default="UPF-01"),
+                    "resource_id": _property("Focus network resource", "关注网元"),
                 },
-                "required": [],
+                "required": ["resource_id"],
             },
         ),
         _skill(
@@ -103,10 +103,10 @@ def netheal_skills() -> list[dict]:
             {
                 "type": "object",
                 "properties": {
-                    "query": _property("Fault symptoms and resources", "故障现象与网元关键词", default="UPF CPU 时延 丢包"),
+                    "query": _property("Fault symptoms and resources", "故障现象与网元关键词"),
                     "top_k": _property("Maximum returned rules", "最多返回规则数", "integer", 3),
                 },
-                "required": [],
+                "required": ["query"],
             },
         ),
         _skill(
@@ -126,11 +126,11 @@ def netheal_skills() -> list[dict]:
             {
                 "type": "object",
                 "properties": {
-                    "root_cause": _property("Root-cause code", "根因编码", default="UPF_OVERLOAD"),
-                    "resource_id": _property("Root resource ID", "根网元ID", default="UPF-01"),
+                    "root_cause": _property("Root-cause code", "根因编码"),
+                    "resource_id": _property("Root resource ID", "根网元ID"),
                     "simulation_mode": _property("Whether execution is simulated", "是否为仿真执行", "boolean", True),
                 },
-                "required": [],
+                "required": ["root_cause", "resource_id"],
             },
         ),
         _skill(
@@ -142,10 +142,10 @@ def netheal_skills() -> list[dict]:
             {
                 "type": "object",
                 "properties": {
-                    "root_cause": _property("Root-cause code", "根因编码", default="UPF_OVERLOAD"),
+                    "root_cause": _property("Root-cause code", "根因编码"),
                     "dry_run": _property("Keep commands in dry-run mode", "保持命令仅仿真", "boolean", True),
                 },
-                "required": [],
+                "required": ["root_cause"],
             },
         ),
         _skill(
@@ -158,10 +158,10 @@ def netheal_skills() -> list[dict]:
                 "type": "object",
                 "properties": {
                     "scenario_id": site_and_scenario["properties"]["scenario_id"],
-                    "root_cause": _property("Root-cause code", "根因编码", default="UPF_OVERLOAD"),
+                    "root_cause": _property("Root-cause code", "根因编码"),
                     "priority": _property("Work-order priority", "工单优先级", default="P2"),
                 },
-                "required": [],
+                "required": ["scenario_id", "root_cause"],
             },
         ),
         _skill(
